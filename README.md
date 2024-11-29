@@ -1,2 +1,2 @@
 # FQL
-FQL (Functional Query Language) is a programming language designed to make SQL use of functional programming paradigm.
+FQL (Functional Query Language) is a programming language designed to make SQL use the functional programming paradigm.
