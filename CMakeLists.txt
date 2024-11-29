@@ -1,0 +1,24 @@
+cmake_minimum_required(VERSION 3.27)
+project(FQL)
+
+set(CMAKE_CXX_STANDARD 23)
+
+add_executable(FQL main.cpp
+        domain/attribute/Attribute.cpp
+        domain/attribute/Attribute.h
+        domain/validator/Validator.cpp
+        domain/validator/Validator.h
+        domain/datatype/Datatype.cpp
+        domain/datatype/Datatype.h
+        domain/datatype/datatypes/integer/Integer.cpp
+        domain/datatype/datatypes/integer/Integer.h
+        domain/datatype/datatypes/char/Char.cpp
+        domain/datatype/datatypes/char/Char.h
+        domain/datatype/datatypes/varchar/Varchar.cpp
+        domain/datatype/datatypes/varchar/Varchar.h
+        domain/datatype/datatypes/boolean/Boolean.cpp
+        domain/datatype/datatypes/boolean/Boolean.h
+        domain/datatype/datatypes/date/Date.cpp
+        domain/datatype/datatypes/date/Date.h
+        domain/datatype/datatypes/datetime/Datetime.cpp
+        domain/datatype/datatypes/datetime/Datetime.h)
