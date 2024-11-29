@@ -21,4 +21,6 @@ add_executable(FQL main.cpp
         domain/datatype/datatypes/date/Date.cpp
         domain/datatype/datatypes/date/Date.h
         domain/datatype/datatypes/datetime/Datetime.cpp
-        domain/datatype/datatypes/datetime/Datetime.h)
+        domain/datatype/datatypes/datetime/Datetime.h
+        domain/relation/Relation.cpp
+        domain/relation/Relation.h)
