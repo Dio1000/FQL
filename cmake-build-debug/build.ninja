@@ -133,6 +133,12 @@ build CMakeFiles/FQL.dir/domain/schema/Schema.cpp.o: CXX_COMPILER__FQL_unscanned
   OBJECT_DIR = CMakeFiles/FQL.dir
   OBJECT_FILE_DIR = CMakeFiles/FQL.dir/domain/schema
 
+build CMakeFiles/FQL.dir/io/output.cpp.o: CXX_COMPILER__FQL_unscanned_Debug /Users/dariansandru/CLionProjects/FQL/io/output.cpp || cmake_object_order_depends_target_FQL
+  DEP_FILE = CMakeFiles/FQL.dir/io/output.cpp.o.d
+  FLAGS = -g -std=gnu++2b -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX14.0.sdk -fcolor-diagnostics
+  OBJECT_DIR = CMakeFiles/FQL.dir
+  OBJECT_FILE_DIR = CMakeFiles/FQL.dir/io
+
 
 # =============================================================================
 # Link build statements for EXECUTABLE target FQL
@@ -141,7 +147,7 @@ build CMakeFiles/FQL.dir/domain/schema/Schema.cpp.o: CXX_COMPILER__FQL_unscanned
 #############################################
 # Link the executable FQL
 
-build FQL: CXX_EXECUTABLE_LINKER__FQL_Debug CMakeFiles/FQL.dir/main.cpp.o CMakeFiles/FQL.dir/domain/attribute/Attribute.cpp.o CMakeFiles/FQL.dir/domain/validator/Validator.cpp.o CMakeFiles/FQL.dir/domain/datatype/Datatype.cpp.o CMakeFiles/FQL.dir/domain/datatype/datatypes/integer/Integer.cpp.o CMakeFiles/FQL.dir/domain/datatype/datatypes/char/Char.cpp.o CMakeFiles/FQL.dir/domain/datatype/datatypes/varchar/Varchar.cpp.o CMakeFiles/FQL.dir/domain/datatype/datatypes/boolean/Boolean.cpp.o CMakeFiles/FQL.dir/domain/datatype/datatypes/date/Date.cpp.o CMakeFiles/FQL.dir/domain/datatype/datatypes/datetime/Datetime.cpp.o CMakeFiles/FQL.dir/domain/relation/Relation.cpp.o CMakeFiles/FQL.dir/utils/algorithms/algorithms.cpp.o CMakeFiles/FQL.dir/utils/data_structures/BTree.cpp.o CMakeFiles/FQL.dir/domain/schema/Schema.cpp.o
+build FQL: CXX_EXECUTABLE_LINKER__FQL_Debug CMakeFiles/FQL.dir/main.cpp.o CMakeFiles/FQL.dir/domain/attribute/Attribute.cpp.o CMakeFiles/FQL.dir/domain/validator/Validator.cpp.o CMakeFiles/FQL.dir/domain/datatype/Datatype.cpp.o CMakeFiles/FQL.dir/domain/datatype/datatypes/integer/Integer.cpp.o CMakeFiles/FQL.dir/domain/datatype/datatypes/char/Char.cpp.o CMakeFiles/FQL.dir/domain/datatype/datatypes/varchar/Varchar.cpp.o CMakeFiles/FQL.dir/domain/datatype/datatypes/boolean/Boolean.cpp.o CMakeFiles/FQL.dir/domain/datatype/datatypes/date/Date.cpp.o CMakeFiles/FQL.dir/domain/datatype/datatypes/datetime/Datetime.cpp.o CMakeFiles/FQL.dir/domain/relation/Relation.cpp.o CMakeFiles/FQL.dir/utils/algorithms/algorithms.cpp.o CMakeFiles/FQL.dir/utils/data_structures/BTree.cpp.o CMakeFiles/FQL.dir/domain/schema/Schema.cpp.o CMakeFiles/FQL.dir/io/output.cpp.o
   FLAGS = -g -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX14.0.sdk
   OBJECT_DIR = CMakeFiles/FQL.dir
   POST_BUILD = :

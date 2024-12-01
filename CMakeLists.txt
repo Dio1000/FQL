@@ -29,4 +29,6 @@ add_executable(FQL main.cpp
         utils/data_structures/BTree.cpp
         utils/data_structures/BTree.h
         domain/schema/Schema.cpp
-        domain/schema/Schema.h)
+        domain/schema/Schema.h
+        io/output.cpp
+        io/output.h)
