@@ -16,7 +16,7 @@ private:
 
 public:
     Relation();
-    Relation(const std::string &name, const std::vector<Attribute*> &attributes);
+    Relation(std::string name, const std::vector<Attribute*> &attributes);
     ~Relation();
 
     std::string getName() const;

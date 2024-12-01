@@ -1,9 +1,11 @@
 #include "Relation.h"
 
+#include <utility>
+
 Relation::Relation() : name("null"), attributes() {}
 
-Relation::Relation(const std::string &name, const std::vector<Attribute*> &attributes)
-        : name(name), attributes(attributes) {}
+Relation::Relation(std::string name, const std::vector<Attribute*> &attributes)
+        : name(std::move(name)), attributes(attributes) {}
 
 Relation::~Relation() {
     for (auto attribute : attributes) {

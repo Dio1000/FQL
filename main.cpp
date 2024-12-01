@@ -3,6 +3,7 @@
 
 #include "./domain/relation/Relation.h"
 #include "./domain/attribute/Attribute.h"
+#include "./domain/schema/Schema.h"
 #include "./domain/datatype/datatypes/integer/Integer.h"
 #include "./domain/datatype/datatypes/boolean/Boolean.h"
 #include "./domain/datatype/datatypes/date/Date.h"
@@ -20,4 +21,12 @@ int main() {
     attributes.push_back(attr3);
 
     auto* relation = new Relation("Student", attributes);
+
+    std::vector<Relation*> relations;
+    relations.push_back(relation);
+
+    auto* schema = new Schema("School", relations);
+
+    std::cout << schema->getName() << std::endl;
+    std::cout << schema->getRelation(1)->getAttribute(1)->getDataType().getName();
 }

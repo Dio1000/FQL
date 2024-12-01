@@ -23,4 +23,10 @@ add_executable(FQL main.cpp
         domain/datatype/datatypes/datetime/Datetime.cpp
         domain/datatype/datatypes/datetime/Datetime.h
         domain/relation/Relation.cpp
-        domain/relation/Relation.h)
+        domain/relation/Relation.h
+        utils/algorithms/algorithms.cpp
+        utils/algorithms/algorithms.h
+        utils/data_structures/BTree.cpp
+        utils/data_structures/BTree.h
+        domain/schema/Schema.cpp
+        domain/schema/Schema.h)
