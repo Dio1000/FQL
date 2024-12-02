@@ -1,6 +1,9 @@
 #include <string>
 #include <fstream>
 #include <vector>
+#include <sys/stat.h>
+#include <filesystem>
+namespace fs = std::filesystem;
 
 #include "output.h"
 
@@ -12,6 +15,18 @@ bool validFile(const std::string &filePath){
     std::ifstream fin(filePath);
     return fin.good();
 }
+
+bool validDirectory(const std::string &dirPath) {
+    if (dirPath.empty()){
+        throw std::runtime_error("Directory path " + dirPath + " was not provided!");
+    }
+
+    struct stat info{};
+
+    if (stat(dirPath.c_str(), &info) != 0) return false;
+    return (info.st_mode & S_IFDIR) != 0;
+}
+
 
 std::vector<std::string> readLines(const std::string &filePath){
     if (filePath.empty()){
@@ -69,5 +84,23 @@ void deleteFile(const char *filePath){
     bool deleted = remove(filePath);
     if (deleted){
         throw std::runtime_error("Could not remove file!");
+    }
+}
+
+void createDirectory(const char *dirPath){
+    if (validDirectory(dirPath)) return;
+
+    if (mkdir(dirPath, 0666) == -1){
+        throw std::runtime_error("Could not create directory!");
+    }
+}
+
+void deleteDirectory(const char *dirPath) {
+    if (!validDirectory(dirPath)) return;
+
+    try {
+        fs::remove_all(dirPath);
+    } catch (const std::filesystem::filesystem_error& e) {
+        throw std::runtime_error("Could not remove directory: " + std::string(e.what()));
     }
 }

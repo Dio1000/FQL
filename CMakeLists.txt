@@ -26,9 +26,9 @@ add_executable(FQL main.cpp
         domain/relation/Relation.h
         utils/algorithms/algorithms.cpp
         utils/algorithms/algorithms.h
-        utils/data_structures/BTree.cpp
-        utils/data_structures/BTree.h
         domain/schema/Schema.cpp
         domain/schema/Schema.h
         io/output.cpp
-        io/output.h)
+        io/output.h
+        utils/data_structures/BTree/BTreeNode.h
+        utils/data_structures/BTree/BTree.h)
