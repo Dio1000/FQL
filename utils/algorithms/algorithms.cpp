@@ -54,11 +54,37 @@ std::vector<unsigned long> searchPattern(const std::string& str, const std::stri
     return foundIndices;
 }
 
-std::string split(const std::string& str, const std::string& pattern, int index){
-
-}
-
 std::vector<std::string> split(const std::string& str, const std::string& pattern){
+    std::vector<unsigned long> patternIndexes = searchPattern(str, pattern);
+    std::vector<std::string> tokenString;
 
+    if (patternIndexes.empty()){
+        tokenString.push_back(str);
+        return tokenString;
+    }
+
+    tokenString.push_back(str.substr(0, patternIndexes[0]));
+    unsigned long index = 1;
+    unsigned long patternSize = pattern.size();
+
+    unsigned long start;
+    unsigned long len;
+    while (index < patternIndexes.size()){
+        start = patternIndexes[index - 1] + patternSize;
+        len = patternIndexes[index] - start;
+
+        tokenString.push_back(str.substr(start, len));
+        index++;
+    }
+
+    start = patternIndexes[index - 1] + patternSize;
+    len = str.length() - start;
+    tokenString.push_back(str.substr(start, len));
+
+    return tokenString;
 }
 
+std::string split(const std::string& str, const std::string& pattern, int index){
+    std::vector<std::string> result = split(str, pattern);
+    return result[index];
+}

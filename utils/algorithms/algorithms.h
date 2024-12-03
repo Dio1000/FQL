@@ -17,6 +17,14 @@ std::vector<unsigned long> longestPrefixSuffix(const std::string& pattern);
 std::vector<unsigned long> searchPattern(const std::string& str, const std::string& pattern);
 
 /**
+ * Splits a given string based on a given pattern and returns the whole resulting list.
+ * @param str String to split.
+ * @param pattern Pattern to split based on.
+ * @return Resulting list
+ */
+std::vector<std::string> split(const std::string& str, const std::string& pattern);
+
+/**
  * Splits a given string based on a given pattern and returns the element
  * at the given index from the resulting list.
  * @param str String to split.
@@ -25,13 +33,5 @@ std::vector<unsigned long> searchPattern(const std::string& str, const std::stri
  * @return String on the given index after split.
  */
 std::string split(const std::string& str, const std::string& pattern, int index);
-
-/**
- * Splits a given string based on a given pattern and returns the whole resulting list.
- * @param str String to split.
- * @param pattern Pattern to split based on.
- * @return Resulting list
- */
-std::vector<std::string> split(const std::string& str, const std::string& pattern);
 
 #endif
