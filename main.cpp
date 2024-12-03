@@ -9,7 +9,8 @@
 #include "./domain/datatype/datatypes/date/Date.h"
 #include "./io/output.h"
 #include "./utils/data_structures/BTree/BTree.h"
+#include "./utils/algorithms/algorithms.h"
 
 int main() {
-    std::cout << "Works in progress!";
+    std::cout << "Works in progress!" << std::endl;
 }
