@@ -5,23 +5,25 @@
 #include "../utils/algorithms/algorithms.h"
 #include "ui.h"
 
-int offset = 5;
+int offset = 10;
+unsigned long headerSize;
+unsigned long lineLength;
 
 void showSchema(const std::vector<std::string>& lines){
     std::vector<unsigned long> lengthVector = computeLengthVector(lines);
     std::vector<std::string> headers = split(lines[0], ",");
 
-    unsigned long headerNumber = headers.size();
-    unsigned long lineLength = getMaxLength(lengthVector, headerNumber);
+    headerSize = headers.size();
+    lineLength = getMaxLength(lengthVector, headerSize);
 
-    showEmptyLine(lineLength, headerNumber);
+    showEmptyLine(lineLength, headerSize);
     showLines(lines);
-    showEmptyLine(lineLength, headerNumber);
+    showEmptyLine(lineLength, headerSize);
 }
 
 void showEmptyLine(unsigned long length, unsigned long headerNumber){
     std::cout << "+";
-    for (int index = 1 ; index < length + headerNumber * offset - 1 ; index++) std::cout << "-";
+    for (int index = 1 ; index < length + offset - 1 ; index++) std::cout << "-";
     std::cout << "+";
     std::cout << std::endl;
 }
@@ -29,26 +31,27 @@ void showEmptyLine(unsigned long length, unsigned long headerNumber){
 void showLines(const std::vector<std::string>& lines){
     std::vector<unsigned long> lengthVector = computeLengthVector(lines);
 
-    for (const auto& line : lines){
-        std::vector<std::string> headers = split(line, ",");
+    for (int lineIndex = 0; lineIndex < lines.size(); lineIndex++){
+        std::cout << "|";
+        std::vector<std::string> headers = split(lines[lineIndex], ",");
 
         int index = 0;
         while (index < headers.size()){
-            unsigned long totalLength = lengthVector[index] + offset + headers[index].size();
-            unsigned long currentLength = headers[index].size() + offset;
+            unsigned long totalLength = lengthVector[index] + offset;
+            unsigned long currentLength = headers[index].size();
 
             std::cout << headers[index];
-            for (int i = 0 ; i < offset ; i++) std::cout << " ";
-
             for (int i = 0 ; i < totalLength - currentLength ; i++) std::cout << " ";
             std::cout << "|";
 
             index++;
         }
         std::cout << std::endl;
+
+        if (lineIndex == 0) showEmptyLine(lineLength, headerSize);
     }
-    std::cout << std::endl;
 }
+
 
 std::vector<unsigned long> computeLengthVector(const std::vector<std::string>& lines){
     std::vector<std::string> _headers = split(lines[0], ",");
@@ -73,5 +76,5 @@ unsigned long getMaxLength(const std::vector<unsigned long>& lengthVector, unsig
     unsigned long total = 0;
     for (auto elem : lengthVector) total += elem;
 
-    return total + offset * headerNumber;
+    return total + offset * headerNumber - 4;
 }
