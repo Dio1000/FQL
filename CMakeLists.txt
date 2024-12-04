@@ -31,4 +31,6 @@ add_executable(FQL main.cpp
         io/output.cpp
         io/output.h
         utils/data_structures/BTree/BTreeNode.h
-        utils/data_structures/BTree/BTree.h)
+        utils/data_structures/BTree/BTree.h
+        ui/ui.cpp
+        ui/ui.h)

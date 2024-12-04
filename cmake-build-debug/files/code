@@ -33,3 +33,7 @@ relation: Teacher -> {
     Age, int, nullable
     Course, varchar(20), nullable
 } -> School
+
+-- Storing data in an array --
+arr studentNames = Student.fetch(Student.name)
+arr studentFullNames = Student.fetch(Student.name) + Student.fetch(Student.surname)
