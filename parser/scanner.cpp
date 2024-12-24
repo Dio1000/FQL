@@ -1,7 +1,6 @@
 #include <string>
 #include <vector>
 #include <regex>
-#include <iostream>
 
 #include "scanner.h"
 #include "../io/output.h"
@@ -33,54 +32,46 @@ std::vector<std::string> readCode(const std::string& filePath) {
     return codeLines;
 }
 
-
 std::vector<std::string> scanLine(const std::string &line) {
     std::regex keywordsRegex(R"(^\s*(schema|relation|varchar|int|date|boolean|PK|FK|nullable|char|datetime))");
-    std::regex constantsRegex(R"(^\s*(->|[^a-zA-Z0-9\s]))");
+    std::regex separatorRegex(R"(^\s*(->|:|=|\+|-|\(|\)|\{|\}|\.|\,))");
+    std::regex constantRegex(R"(^\s*(-?\d+(\.\d+)?|\"(?:\\.|[^\"])*\"))");
     std::regex identifierRegex(R"(^\s*[a-zA-Z]+)");
-    std::regex endOfFileRegex(R"(\n)");
-    std::regex errorRegex(R"(\s*.+)");
+    std::regex endOfFileRegex(R"(^$)");
+    std::regex errorRegex(R"(\S+)");
 
     std::string remainingString = line;
     std::vector<std::string> tokens;
 
     while (!remainingString.empty()) {
         std::smatch match;
+
         if (std::regex_search(remainingString, match, keywordsRegex)) {
-            std::string str = match[0].str();
-            str.erase(remove_if(str.begin(), str.end(), isspace), str.end());
-            tokens.push_back("Keyword:" + str);
-
-            remainingString = remainingString.substr(match.position() + match.length());
+            tokens.push_back("Keyword:" + match.str(1));
+            remainingString = remainingString.substr(match.length());
         }
-        else if (std::regex_search(remainingString, match, constantsRegex)) {
-            std::string str = match[0].str();
-            str.erase(remove_if(str.begin(), str.end(), isspace), str.end());
-            tokens.push_back("Constant:" + str);
-
-            remainingString = remainingString.substr(match.position() + match.length());
+        else if (std::regex_search(remainingString, match, separatorRegex)) {
+            tokens.push_back("Separator:" + match.str(1));
+            remainingString = remainingString.substr(match.length());
+        }
+        else if (std::regex_search(remainingString, match, constantRegex)) {
+            tokens.push_back("Constant:" + match.str(1));
+            remainingString = remainingString.substr(match.length());
         }
         else if (std::regex_search(remainingString, match, identifierRegex)) {
-            std::string str = match[0].str();
-            str.erase(remove_if(str.begin(), str.end(), isspace), str.end());
-            tokens.push_back("Identifier:" + str);
-
-            remainingString = remainingString.substr(match.position() + match.length());
+            tokens.push_back("Identifier:" + match.str(0));
+            remainingString = remainingString.substr(match.length());
         }
-        else if (std::regex_search(remainingString, match, endOfFileRegex)) {
-            std::string str = match[0].str();
-            str.erase(remove_if(str.begin(), str.end(), isspace), str.end());
-            tokens.push_back("EOF:" + str);
-
-            remainingString = remainingString.substr(match.position() + match.length());
+        else if (std::regex_match(remainingString, match, endOfFileRegex)) {
+            tokens.emplace_back("EOF");
+            break;
         }
         else if (std::regex_search(remainingString, match, errorRegex)) {
-            std::string str = match[0].str();
-            str.erase(remove_if(str.begin(), str.end(), isspace), str.end());
-            tokens.push_back("Error:" + str);
-
-            remainingString = remainingString.substr(match.position() + match.length());
+            tokens.push_back("Error:" + match.str(0));
+            remainingString = remainingString.substr(match.length());
         }
+
+        remainingString = std::regex_replace(remainingString, std::regex(R"(^\s+)"), "");
     }
 
     return tokens;
