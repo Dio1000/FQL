@@ -1,0 +1,18 @@
+# ninja log v5
+0	272	1735055064545160304	CMakeFiles/FQL.dir/domain/datatype/Datatype.cpp.o	488d1e8b11efd501
+0	274	1735055064546159179	CMakeFiles/FQL.dir/domain/validator/Validator.cpp.o	2b7d9b5a822d52b6
+1	293	1735055064565277094	CMakeFiles/FQL.dir/domain/datatype/datatypes/integer/Integer.cpp.o	e2958b397f64a0dc
+1	294	1735055064565389802	CMakeFiles/FQL.dir/domain/datatype/datatypes/char/Char.cpp.o	83e69e933c7c522c
+0	295	1735055064565769636	CMakeFiles/FQL.dir/domain/attribute/Attribute.cpp.o	2a3b22ee9fcf25a9
+274	466	1735055064739811247	CMakeFiles/FQL.dir/domain/datatype/datatypes/varchar/Varchar.cpp.o	16096ccf62c9670a
+274	473	1735055064747743996	CMakeFiles/FQL.dir/domain/datatype/datatypes/boolean/Boolean.cpp.o	d544410c22cdc754
+294	484	1735055064756167371	CMakeFiles/FQL.dir/domain/datatype/datatypes/datetime/Datetime.cpp.o	8a0098a7b40c7e64
+293	493	1735055064766636161	CMakeFiles/FQL.dir/domain/datatype/datatypes/date/Date.cpp.o	3d08050498f87bb5
+0	508	1735055064781752493	CMakeFiles/FQL.dir/main.cpp.o	7b80b12684d26fb5
+296	597	1735055064871306320	CMakeFiles/FQL.dir/domain/relation/Relation.cpp.o	3ad18ea7ab8d679
+473	747	1735055065020593224	CMakeFiles/FQL.dir/domain/schema/Schema.cpp.o	ad713b577a6e07d6
+466	771	1735055065044610056	CMakeFiles/FQL.dir/utils/algorithms/algorithms.cpp.o	58d165a08936417e
+493	819	1735055065092612302	CMakeFiles/FQL.dir/ui/ui.cpp.o	42a55333bba42d2
+485	888	1735055065161790296	CMakeFiles/FQL.dir/io/output.cpp.o	1e7ffd22b31c5644
+509	1187	1735055065460260814	CMakeFiles/FQL.dir/parser/scanner.cpp.o	6b7a7951d56a18ad
+1187	1216	1735055065491099895	FQL	bc67d8388d729753
