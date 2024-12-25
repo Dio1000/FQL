@@ -28,11 +28,15 @@ add_executable(FQL main.cpp
         utils/algorithms/algorithms.h
         domain/schema/Schema.cpp
         domain/schema/Schema.h
-        io/output.cpp
-        io/output.h
+        io/io.cpp
+        io/io.h
         utils/data_structures/BTree/BTreeNode.h
         utils/data_structures/BTree/BTree.h
         ui/ui.cpp
         ui/ui.h
-        parser/scanner.cpp
-        parser/scanner.h)
+        interpretor/scanner/scanner.cpp
+        interpretor/scanner/scanner.h
+        interpretor/parser/parser.cpp
+        interpretor/parser/parser.h
+        interpretor/validator/validator.cpp
+        interpretor/validator/validator.h)

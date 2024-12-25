@@ -88,3 +88,30 @@ std::string split(const std::string& str, const std::string& pattern, int index)
     std::vector<std::string> result = split(str, pattern);
     return result[index];
 }
+
+std::string strip(const std::string &line, char delimiter){
+    std::string strippedLine;
+    unsigned long firstIndex = 0;
+    unsigned long lastIndex = line.size() - 1;
+
+    while (firstIndex != line.size()){
+        if (line[firstIndex] == delimiter) firstIndex++;
+        else break;
+    }
+
+    while (lastIndex != 0){
+        if (line[lastIndex] == delimiter) lastIndex--;
+        else break;
+    }
+
+    for (unsigned long index = firstIndex ; index < lastIndex + 1 ; index++) strippedLine += line[index];
+    return strippedLine;
+
+}
+
+bool is_number(const std::string& s)
+{
+    std::string::const_iterator it = s.begin();
+    while (it != s.end() && std::isdigit(*it)) ++it;
+    return !s.empty() && it == s.end();
+}

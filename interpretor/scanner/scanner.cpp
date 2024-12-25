@@ -3,7 +3,8 @@
 #include <regex>
 
 #include "scanner.h"
-#include "../io/output.h"
+#include "../../io/io.h"
+#include "../../utils/algorithms/algorithms.h"
 
 std::vector<std::string> readCode(const std::string& filePath) {
     std::regex oneLineComment(R"(\s*--\s*.*?\s*--)");
@@ -33,7 +34,7 @@ std::vector<std::string> readCode(const std::string& filePath) {
 }
 
 std::vector<std::string> scanLine(const std::string &line) {
-    std::regex keywordsRegex(R"(^\s*(schema|relation|varchar|int|date|boolean|PK|FK|nullable|char|datetime))");
+    std::regex keywordsRegex(R"(^\s*(schema|relation|varchar|int|date|boolean|PK|FK|nullable|char|datetime|using|nullable|not null|NULLABLE|NOT NULL))");
     std::regex separatorRegex(R"(^\s*(->|:|=|\+|-|\(|\)|\{|\}|\.|\,))");
     std::regex constantRegex(R"(^\s*(-?\d+(\.\d+)?|\"(?:\\.|[^\"])*\"))");
     std::regex identifierRegex(R"(^\s*[a-zA-Z]+)");
@@ -47,19 +48,19 @@ std::vector<std::string> scanLine(const std::string &line) {
         std::smatch match;
 
         if (std::regex_search(remainingString, match, keywordsRegex)) {
-            tokens.push_back("Keyword:" + match.str(1));
+            tokens.push_back("Keyword;" + strip(match.str(1), ' '));
             remainingString = remainingString.substr(match.length());
         }
         else if (std::regex_search(remainingString, match, separatorRegex)) {
-            tokens.push_back("Separator:" + match.str(1));
+            tokens.push_back("Separator;" + strip(match.str(1), ' '));
             remainingString = remainingString.substr(match.length());
         }
         else if (std::regex_search(remainingString, match, constantRegex)) {
-            tokens.push_back("Constant:" + match.str(1));
+            tokens.push_back("Constant;" + strip(match.str(1), ' '));
             remainingString = remainingString.substr(match.length());
         }
         else if (std::regex_search(remainingString, match, identifierRegex)) {
-            tokens.push_back("Identifier:" + match.str(0));
+            tokens.push_back("Identifier;" + strip(match.str(0), ' '));
             remainingString = remainingString.substr(match.length());
         }
         else if (std::regex_match(remainingString, match, endOfFileRegex)) {
@@ -67,7 +68,7 @@ std::vector<std::string> scanLine(const std::string &line) {
             break;
         }
         else if (std::regex_search(remainingString, match, errorRegex)) {
-            tokens.push_back("Error:" + match.str(0));
+            tokens.push_back("Error;" + strip(match.str(0), ' '));
             remainingString = remainingString.substr(match.length());
         }
 
@@ -90,6 +91,3 @@ std::vector<std::string> scanCode(const std::vector<std::string> &codeLines){
 
     return scannedCode;
 }
-
-
-

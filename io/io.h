@@ -1,5 +1,5 @@
-#ifndef FQL_OUTPUT_H
-#define FQL_OUTPUT_H
+#ifndef FQL_IO_H
+#define FQL_IO_H
 
 bool validFile(const std::string &filePath);
 
@@ -17,4 +17,4 @@ void createDirectory(const char *dirPath);
 
 void deleteDirectory(const char *dirPath);
 
-#endif //FQL_OUTPUT_H
+#endif //FQL_IO_H

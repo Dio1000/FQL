@@ -34,4 +34,8 @@ std::vector<std::string> split(const std::string& str, const std::string& patter
  */
 std::string split(const std::string& str, const std::string& pattern, int index);
 
+std::string strip(const std::string& str, char delimiter);
+
+bool is_number(const std::string& s);
+
 #endif
