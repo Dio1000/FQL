@@ -16,8 +16,7 @@ std::vector<std::string> readCode(const std::string& filePath) {
 
     auto it = codeLines.begin();
     while (it != codeLines.end()) {
-        if (it->empty()) it = codeLines.erase(it);
-        else if (std::regex_match(*it, oneLineComment)) it = codeLines.erase(it);
+        if (std::regex_match(*it, oneLineComment)) it = codeLines.erase(it);
         else if (std::regex_match(*it, startMultiLineComment)) {
             it = codeLines.erase(it);
             inMultiLineComment = true;
@@ -33,7 +32,7 @@ std::vector<std::string> readCode(const std::string& filePath) {
     return codeLines;
 }
 
-std::vector<std::string> scanLine(const std::string &line) {
+std::vector<std::string> scanLine(const std::string& line) {
     std::regex keywordsRegex(R"(^\s*(schema|relation|varchar|int|date|boolean|PK|FK|nullable|char|datetime|using|nullable|not null|NULLABLE|NOT NULL))");
     std::regex separatorRegex(R"(^\s*(->|:|=|\+|-|\(|\)|\{|\}|\.|\,))");
     std::regex constantRegex(R"(^\s*(-?\d+(\.\d+)?|\"(?:\\.|[^\"])*\"))");
@@ -78,15 +77,18 @@ std::vector<std::string> scanLine(const std::string &line) {
     return tokens;
 }
 
-std::vector<std::string> scanCode(const std::vector<std::string> &codeLines){
+std::vector<std::string> scanCode(const std::vector<std::string>& codeLines) {
     std::vector<std::string> scannedCode;
-    auto it = codeLines.begin();
+    int lineNumber = 1;
 
-    while (it != codeLines.end()){
-        std::vector<std::string> scannedTokens = scanLine(*it);
-        scannedCode.insert(scannedCode.end(), scannedTokens.begin(), scannedTokens.end());
+    for (const auto& line : codeLines) {
+        std::vector<std::string> scannedTokens = scanLine(line);
 
-        it++;
+        for (const auto& token : scannedTokens) {
+            scannedCode.push_back(token + ";" + std::to_string(lineNumber));
+        }
+
+        lineNumber++;
     }
 
     return scannedCode;

@@ -1,0 +1,18 @@
+schema: School
+using: School
+
+relation: Student
+relation: Teacher
+
+Student -> {
+    CNP,varchar(20),PK
+    Name,varchar(100),NOT NULL
+    Surname,varchar(100),NOT NULL
+}
+
+Teacher -> {
+    CNP,varchar(20),PK
+    StudentCNP,varchar(20),FK
+    Name,varchar(100),NULLABLE
+    Surname,varchar(100),NULLABLE
+}

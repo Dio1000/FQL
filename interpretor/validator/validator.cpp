@@ -72,7 +72,7 @@ std::unordered_map<std::string, std::string> getRelationSchema(const std::vector
     return relationSchemaMap;
 }
 
-bool schemaExists(const std::string &schema, const std::vector<std::string> &codeLines) {
+bool schemaAlreadyExists(const std::string &schema, const std::vector<std::string> &codeLines) {
     std::vector<std::string> schemas = getSchemas(codeLines);
     int count = 0;
 
@@ -81,6 +81,16 @@ bool schemaExists(const std::string &schema, const std::vector<std::string> &cod
             count++;
             if (count >= 2) return true;
         }
+    }
+
+    return false;
+}
+
+bool schemaExists(const std::string &schema, const std::vector<std::string> &codeLines){
+    std::vector<std::string> schemas = getSchemas(codeLines);
+
+    for (const std::string &currentSchema : schemas) {
+        if (currentSchema == schema) return true;
     }
 
     return false;
