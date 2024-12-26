@@ -23,5 +23,6 @@ int main() {
     //for (auto line : scannedLines) std::cout << line << std::endl;
 
     parseCode(scannedLines);
-
 }
+
+//TODO fix some bug messages from relation attributes

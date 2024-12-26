@@ -34,8 +34,19 @@ std::vector<std::string> split(const std::string& str, const std::string& patter
  */
 std::string split(const std::string& str, const std::string& pattern, int index);
 
+/**
+ * Strips the trailing characters given by the user from the front and back of a string.
+ * @param str String to strip.
+ * @param delimiter Stripped characters.
+ * @return New string with the stripped characters.
+ */
 std::string strip(const std::string& str, char delimiter);
 
-bool is_number(const std::string& s);
+/**
+ * Checks if a string can be cast to integer.
+ * @param s String to check.
+ * @return True if the string can be cast to integer, false otherwise.
+ */
+bool isNumber(const std::string& s);
 
 #endif

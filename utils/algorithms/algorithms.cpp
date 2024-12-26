@@ -109,7 +109,7 @@ std::string strip(const std::string &line, char delimiter){
 
 }
 
-bool is_number(const std::string& s)
+bool isNumber(const std::string& s)
 {
     std::string::const_iterator it = s.begin();
     while (it != s.end() && std::isdigit(*it)) ++it;

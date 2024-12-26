@@ -151,7 +151,7 @@ int parseAttribute(int index, const std::vector<std::string>& codeLines) {
         index++;
 
         tokens = split(codeLines[index], ";");
-        if (tokens[0] != "Constant" || !is_number(tokens[1])) {
+        if (tokens[0] != "Constant" || !isNumber(tokens[1])) {
             logError("Syntax error at line " + tokens[2] + "! Size of varchar must be a positive integer.", index);
             return index + 1;
         }

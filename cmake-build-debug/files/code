@@ -5,7 +5,7 @@ relation: Student
 relation: Teacher
 
 Student -> {
-    CNP,varchar(20),PK
+    CNP,varchar(20),NULLABLE
     Name,varchar(100),NOT NULL
     Surname,varchar(100),NOT NULL
 }
