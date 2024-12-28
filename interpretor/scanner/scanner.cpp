@@ -1,6 +1,7 @@
 #include <string>
 #include <vector>
 #include <regex>
+#include <iostream>
 
 #include "scanner.h"
 #include "../../io/io.h"
@@ -33,10 +34,11 @@ std::vector<std::string> readCode(const std::string& filePath) {
 }
 
 std::vector<std::string> scanLine(const std::string& line) {
-    std::regex keywordsRegex(R"(^\s*(schema|relation|varchar|int|date|boolean|PK|FK|nullable|char|datetime|using|nullable|not null|NULLABLE|NOT NULL))");
-    std::regex separatorRegex(R"(^\s*(->|:|=|\+|-|\(|\)|\{|\}|\.|\,))");
+    std::regex keywordsRegex(R"(^\s*(include|schema|relation|varchar|int|date|boolean|PK|FK|nullable|char|datetime|using|nullable|not null|NULLABLE|NOT NULL))");
+    std::regex methodRegex(R"(^\s*(add|delete|fetch))");
+    std::regex separatorRegex(R"(^\s*(->|:|=|\+|-|\(|\)|\{|\}|\.|\,))"); // Matches `.`
     std::regex constantRegex(R"(^\s*(-?\d+(\.\d+)?|\"(?:\\.|[^\"])*\"))");
-    std::regex identifierRegex(R"(^\s*[a-zA-Z]+)");
+    std::regex identifierRegex(R"(^\s*[a-zA-Z0-9_\-/\\]+)"); // Removed `.` from regex
     std::regex endOfFileRegex(R"(^$)");
     std::regex errorRegex(R"(\S+)");
 
@@ -50,8 +52,12 @@ std::vector<std::string> scanLine(const std::string& line) {
             tokens.push_back("Keyword;" + strip(match.str(1), ' '));
             remainingString = remainingString.substr(match.length());
         }
-        else if (std::regex_search(remainingString, match, separatorRegex)) {
+        else if (std::regex_search(remainingString, match, separatorRegex)) { // Match separator first
             tokens.push_back("Separator;" + strip(match.str(1), ' '));
+            remainingString = remainingString.substr(match.length());
+        }
+        else if (std::regex_search(remainingString, match, methodRegex)) {
+            tokens.push_back("Method;" + strip(match.str(1), ' '));
             remainingString = remainingString.substr(match.length());
         }
         else if (std::regex_search(remainingString, match, constantRegex)) {
@@ -77,15 +83,32 @@ std::vector<std::string> scanLine(const std::string& line) {
     return tokens;
 }
 
-std::vector<std::string> scanCode(const std::vector<std::string>& codeLines) {
+std::vector<std::string> scanCode(const std::string &filePath, std::unordered_set<std::string> &scannedFiles) {
+    if (scannedFiles.find(filePath) != scannedFiles.end()) {
+        return {};
+    }
+
+    scannedFiles.insert(filePath);
+
+    std::vector<std::string> codeLines = readCode(filePath);
     std::vector<std::string> scannedCode;
     int lineNumber = 1;
 
-    for (const auto& line : codeLines) {
-        std::vector<std::string> scannedTokens = scanLine(line);
+    for (const auto &line : codeLines) {
+        std::vector<std::string> tokens = scanLine(line);
 
-        for (const auto& token : scannedTokens) {
-            scannedCode.push_back(token + ";" + std::to_string(lineNumber));
+        for (const auto &token : tokens) {
+            if (token.find("Keyword;include") == 0) {
+                size_t pos = line.find(":");
+                if (pos != std::string::npos) {
+                    std::string includedFile = strip(line.substr(pos + 1), ' ');
+                    std::vector<std::string> includedTokens = scanCode(includedFile, scannedFiles);
+                    scannedCode.insert(scannedCode.end(), includedTokens.begin(), includedTokens.end());
+                } else {
+                    std::cerr << "Error: Invalid include statement in " << filePath << " at line " << lineNumber << std::endl;
+                }
+            }
+            else scannedCode.push_back(token + ";" + std::to_string(lineNumber));
         }
 
         lineNumber++;

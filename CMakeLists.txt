@@ -39,4 +39,6 @@ add_executable(FQL main.cpp
         interpretor/parser/parser.cpp
         interpretor/parser/parser.h
         interpretor/validator/validator.cpp
-        interpretor/validator/validator.h)
+        interpretor/validator/validator.h
+        interpretor/executor/executor.cpp
+        interpretor/executor/executor.h)

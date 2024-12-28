@@ -1,5 +1,7 @@
 #include <string>
 #include <vector>
+#include <regex>
+
 
 #include "algorithms.h"
 
@@ -115,3 +117,26 @@ bool isNumber(const std::string& s)
     while (it != s.end() && std::isdigit(*it)) ++it;
     return !s.empty() && it == s.end();
 }
+
+bool isChar(const std::string &chr, int size) {
+    return chr.length() == size;
+}
+
+bool isVarchar(const std::string &chr, int size) {
+    return chr.length() <= size;
+}
+
+bool isBoolean(const std::string &b) {
+    return b == "true" || b == "false" || b == "1" || b == "0";
+}
+
+bool isDate(const std::string &date) {
+    std::regex dateRegex(R"(^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$)");
+    return std::regex_match(date, dateRegex);
+}
+
+bool isDateTime(const std::string &datetime) {
+    std::regex datetimeRegex(R"(^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01]) (0[0-9]|1[0-9]|2[0-3]):([0-5]\d):([0-5]\d)$)");
+    return std::regex_match(datetime, datetimeRegex);
+}
+

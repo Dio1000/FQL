@@ -49,4 +49,39 @@ std::string strip(const std::string& str, char delimiter);
  */
 bool isNumber(const std::string& s);
 
+/**
+ * Checks if a string can be cast to char.
+ * @param s String to check.
+ * @return True if the string can be cast to char, false otherwise.
+ */
+bool isChar(const std::string &chr, int size);
+
+/**
+ * Checks if a string can be cast to varchar.
+ * @param s String to check.
+ * @return True if the string can be cast to varchar, false otherwise.
+ */
+bool isVarchar(const std::string &chr, int size);
+
+/**
+ * Checks if a string can be cast to boolean.
+ * @param s String to check.
+ * @return True if the string can be cast to boolean, false otherwise.
+ */
+bool isBoolean(const std::string &b);
+
+/**
+ * Checks if a string can be cast to date.
+ * @param s String to check.
+ * @return True if the string can be cast to date, false otherwise.
+ */
+bool isDate(const std::string &date);
+
+/**
+ * Checks if a string can be cast to datetime.
+ * @param s String to check.
+ * @return True if the string can be cast to datetime, false otherwise.
+ */
+bool isDateTime(const std::string &datetime);
+
 #endif

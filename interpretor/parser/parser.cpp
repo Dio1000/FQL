@@ -7,6 +7,7 @@
 #include "parser.h"
 #include "../../utils/algorithms/algorithms.h"
 #include "../validator/validator.h"
+#include "../../io/io.h"
 
 std::unordered_set<unsigned long> errorLines;
 std::vector<std::string> warnings;
@@ -38,6 +39,11 @@ int parseCode(const std::vector<std::string>& codeLines) {
         }
         else if (tokens[0] == "Keyword" && tokens[1] == "relation") {
             index = parseRelation(index + 1, codeLines);
+        }
+        else if (tokens[0] == "Identifier" &&
+                (split(codeLines[index + 1], ";")[0] == "Separator") &&
+                (split(codeLines[index + 1], ";")[1] == ".")) {
+            index = parseMethod(index, codeLines);
         }
         else if (tokens[0] == "Identifier" &&
                  (split(codeLines[index + 1], ";")[0] == "Separator") &&
@@ -72,7 +78,7 @@ int parseSchema(int index, const std::vector<std::string>& codeLines) {
 
     tokens = split(codeLines[index], ";");
     if (tokens[0] != "Identifier" || schemaAlreadyExists(tokens[1], codeLines)) {
-        logError("Syntax error at line " + std::to_string(index) +
+        logError("Syntax error at line " + tokens[2] +
                          "! Schema '" + tokens[1] + "' was already declared!", index);
         return -1;
     }
@@ -83,7 +89,7 @@ int parseSchema(int index, const std::vector<std::string>& codeLines) {
 int parseUsing(int index, const std::vector<std::string>& codeLines) {
     auto tokens = split(codeLines[index], ";");
     if (tokens[0] != "Separator" || tokens[1] != ":") {
-        logError("Syntax error at line " + tokens[2] + "! Expected ':' separator!", index);
+        logError("Syntax error at line " + tokens[2] + "! Expected ':' separator after 'using' keyword!", index);
         return -1;
     }
     index++;
@@ -141,7 +147,7 @@ int parseAttribute(int index, const std::vector<std::string>& codeLines) {
     tokens = split(codeLines[index], ";");
     std::string dataType = tokens[1];
 
-    if (dataType == "varchar") {
+    if (dataType == "varchar" || dataType == "char") {
         index++;
         tokens = split(codeLines[index], ";");
         if (tokens[0] != "Separator" || tokens[1] != "(") {
@@ -163,9 +169,9 @@ int parseAttribute(int index, const std::vector<std::string>& codeLines) {
             return index + 1;
         }
         index++;
-    } else {
-        if (tokens[0] != "Keyword" || (tokens[1] != "int" && tokens[1] != "boolean" &&
-                                       tokens[1] != "date" && tokens[1] != "datetime")) {
+    }
+    else {
+        if (tokens[0] != "Keyword" || (!isDataType(tokens[1]))) {
             logError("Syntax error at line " + tokens[2] + "! " + tokens[1] + " is not a valid datatype.", index);
             return index + 1;
         }
@@ -174,15 +180,14 @@ int parseAttribute(int index, const std::vector<std::string>& codeLines) {
 
     tokens = split(codeLines[index], ";");
     if (tokens[0] != "Separator" || tokens[1] != ",") {
-        logError("Syntax error at line " + std::to_string(index) + "! Expected ',' after datatype.", index);
+        logError("Syntax error at line " + tokens[2] + "! Expected ',' after datatype.", index);
         return index + 1;
     }
     index++;
 
     tokens = split(codeLines[index], ";");
-    if (tokens[0] != "Keyword" || (tokens[1] != "NULLABLE" && tokens[1] != "NOT NULL" &&
-                                   tokens[1] != "PK" && tokens[1] != "FK")) {
-        logError("Syntax error at line " + std::to_string(index) + "! Expected a valid constraint but found none.", index);
+    if (tokens[0] != "Keyword" || (!isConstraint(tokens[1]))) {
+        logError("Syntax error at line " + tokens[2] + "! " + tokens[1] + " is not a valid constraint.", index);
         return index + 1;
     }
     index++;
@@ -214,15 +219,61 @@ int parseRelationAttributes(int index, const std::vector<std::string>& codeLines
 
         int nextIndex = parseAttribute(index, codeLines);
         if (nextIndex <= index) {
-            logError("Stuck parsing attributes at line " + std::to_string(index) + ".", index);
+            logError("Stuck parsing attributes at line " + tokens[2] + ".", index);
             return index + 1;
         }
 
         index = nextIndex;
     }
 
-    logError("Syntax error at line " + std::to_string(index) + "! Expected '}' after relation attributes.", index);
+    logError("Syntax error at line " + tokens[2] + "! Expected '}' after relation attributes.", index);
     return index + 1;
+}
+
+int parseMethod(int index, const std::vector<std::string> &codeLines){
+    auto tokens = split(codeLines[index], ";");
+    std::string relation = tokens[1];
+    if (!isRelation(tokens[1], codeLines)){
+        logError("Syntax error at line " + tokens[2] + "! " + tokens[1] + " is not a valid relation!", index);
+        return -1;
+    }
+    index += 2;
+
+    tokens = split(codeLines[index], ";");
+    std::string method = tokens[1];
+    if (tokens[0] != "Method" || !isMethod(tokens[1])){
+        logError("Syntax error at line " + tokens[2] + "! "
+        + tokens[1] + " is not a valid method to call within a relation!", index);
+    }
+    index++;
+
+    if (method == "add") return parseAdd(index + 1, relation, codeLines);
+    return -1;
+}
+
+int parseAdd(int index, const std::string &relation, const std::vector<std::string> &codeLines){
+    auto tokens = split(codeLines[index], ";");
+    if (tokens[0] != "Separator" || tokens[1] != "("){
+        logError("Syntax error at line " + tokens[2] + "! Expected '(' after method call!", index);
+        return -1;
+    }
+    index++;
+
+    std::vector<std::string> attributes = getRelationAttributes(relation, codeLines);
+    int attributeCount = 0;
+
+    tokens = split(codeLines[index], ";");
+    while (tokens[1] != ")"){
+        if (tokens[0] == "Constant"){
+
+        }
+        else if (tokens[0] == "Separator"){
+
+        }
+        else if (tokens[0] == "Identifier"){
+
+        }
+    }
 }
 
 void showMessages() {

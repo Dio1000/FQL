@@ -17,12 +17,16 @@
 #include "./interpretor/validator/validator.h"
 
 int main() {
-    std::vector<std::string> lines = readCode("files/code");
-    std::vector<std::string> scannedLines = scanCode(lines);
+    std::unordered_set<std::string> scannedFiles;
+    std::vector<std::string> tokens = scanCode("files/code", scannedFiles);
 
-    //for (auto line : scannedLines) std::cout << line << std::endl;
+    for (const auto &token : tokens) {
+        std::cout << token << std::endl;
+    }
 
-    parseCode(scannedLines);
+    return 0;
+
+    //parseCode(scannedLines);
 }
 
 //TODO fix some bug messages from relation attributes
