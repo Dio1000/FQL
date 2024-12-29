@@ -67,10 +67,11 @@ int parseMethod(int index, const std::vector<std::string> &codeLines);
 /**
  * Parses an argument passed to a function.
  * @param index Index of the line.
+ * @param argumentType Type of the argument required.
  * @param codeLines Lines of the code to parse.
  * @return Index of the next parsed line.
  */
-int parseArgument(int index, const std::vector<std::string> &codeLines);
+int parseArgument(int index, const std::string &argumentType, const std::vector<std::string> &codeLines);
 
 /**
  * Parses the add method for relations.
@@ -85,5 +86,19 @@ int parseAdd(int index, const std::string &relation, const std::vector<std::stri
  * Shows the warning and error messages in case the build fails.
  */
 void showMessages();
+
+/**
+ * Gets all the warnings regarding the scanned lines.
+ */
+void getWarnings();
+
+/**
+ * Stores the messages related to unused relation warnings.
+ */
+void getUnusedRelationsWarnings();
+
+void validConstantDataTypes(int index, const std::string &argumentType, const std::vector<std::string> &tokens);
+
+void validIdentifierDataTypes(int index, const std::string &argumentType, const std::vector<std::string> &tokens);
 
 #endif //FQL_PARSER_H

@@ -34,11 +34,11 @@ std::vector<std::string> readCode(const std::string& filePath) {
 }
 
 std::vector<std::string> scanLine(const std::string& line) {
-    std::regex keywordsRegex(R"(^\s*(include|schema|relation|varchar|int|date|boolean|PK|FK|nullable|char|datetime|using|nullable|not null|NULLABLE|NOT NULL))");
+    std::regex keywordsRegex(R"(^\s*(include|schema|relation|varchar|int|uuid|UUID|date|boolean|PK|FK|nullable|char|datetime|using|nullable|not null|NULLABLE|NOT NULL))");
     std::regex methodRegex(R"(^\s*(add|delete|fetch))");
-    std::regex separatorRegex(R"(^\s*(->|:|=|\+|-|\(|\)|\{|\}|\.|\,))"); // Matches `.`
+    std::regex separatorRegex(R"(^\s*(->|:|=|\+|-|\(|\)|\{|\}|\.|\,))");
     std::regex constantRegex(R"(^\s*(-?\d+(\.\d+)?|\"(?:\\.|[^\"])*\"))");
-    std::regex identifierRegex(R"(^\s*[a-zA-Z0-9_\-/\\]+)"); // Removed `.` from regex
+    std::regex identifierRegex(R"(^\s*[a-zA-Z0-9_\-/\\]+)");
     std::regex endOfFileRegex(R"(^$)");
     std::regex errorRegex(R"(\S+)");
 
@@ -88,6 +88,10 @@ std::vector<std::string> scanCode(const std::string &filePath, std::unordered_se
         return {};
     }
 
+    if (!validFile(filePath)) {
+        std::cerr << "Linker Error: Invalid file path " << filePath << std::endl;
+        return {};
+    }
     scannedFiles.insert(filePath);
 
     std::vector<std::string> codeLines = readCode(filePath);
@@ -97,18 +101,32 @@ std::vector<std::string> scanCode(const std::string &filePath, std::unordered_se
     for (const auto &line : codeLines) {
         std::vector<std::string> tokens = scanLine(line);
 
+        bool isIncludeLine = false;
         for (const auto &token : tokens) {
             if (token.find("Keyword;include") == 0) {
+                isIncludeLine = true;
                 size_t pos = line.find(":");
                 if (pos != std::string::npos) {
                     std::string includedFile = strip(line.substr(pos + 1), ' ');
-                    std::vector<std::string> includedTokens = scanCode(includedFile, scannedFiles);
-                    scannedCode.insert(scannedCode.end(), includedTokens.begin(), includedTokens.end());
-                } else {
-                    std::cerr << "Error: Invalid include statement in " << filePath << " at line " << lineNumber << std::endl;
+
+                    if (validFile(includedFile)) {
+                        std::vector<std::string> includedTokens = scanCode(includedFile, scannedFiles);
+                        scannedCode.insert(scannedCode.end(), includedTokens.begin(), includedTokens.end());
+                    } else {
+                        std::cerr << "Linker error: Invalid include file path " << includedFile << " in "
+                                  << filePath << " at line " << lineNumber << std::endl;
+                    }
                 }
+                else std::cerr << "Linker error: Invalid include statement in " << filePath << " at line " << lineNumber << std::endl;
+
+                break;
             }
-            else scannedCode.push_back(token + ";" + std::to_string(lineNumber));
+        }
+
+        if (!isIncludeLine) {
+            for (const auto &token : tokens) {
+                scannedCode.push_back(token + ";" + std::to_string(lineNumber));
+            }
         }
 
         lineNumber++;

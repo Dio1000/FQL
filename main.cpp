@@ -20,13 +20,11 @@ int main() {
     std::unordered_set<std::string> scannedFiles;
     std::vector<std::string> tokens = scanCode("files/code", scannedFiles);
 
-    for (const auto &token : tokens) {
-        std::cout << token << std::endl;
-    }
+//    for (const auto &token : tokens) {
+//        std::cout << token << std::endl;
+//    }
 
-    return 0;
-
-    //parseCode(scannedLines);
+    parseCode(tokens);
 }
 
 //TODO fix some bug messages from relation attributes

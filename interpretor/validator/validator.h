@@ -105,4 +105,5 @@ bool isMethod(const std::string &method);
  */
 bool isParameterDataType(const std::string &dataType);
 
+
 #endif //FQL_VALIDATOR_H

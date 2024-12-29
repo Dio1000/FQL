@@ -127,7 +127,8 @@ bool isVarchar(const std::string &chr, int size) {
 }
 
 bool isBoolean(const std::string &b) {
-    return b == "true" || b == "false" || b == "1" || b == "0";
+    return b == "true" || b == "false" || b == "1" || b == "0"
+        || b == "True" || b == "False";
 }
 
 bool isDate(const std::string &date) {
@@ -138,5 +139,13 @@ bool isDate(const std::string &date) {
 bool isDateTime(const std::string &datetime) {
     std::regex datetimeRegex(R"(^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01]) (0[0-9]|1[0-9]|2[0-3]):([0-5]\d):([0-5]\d)$)");
     return std::regex_match(datetime, datetimeRegex);
+}
+
+bool isUUID(const std::string &uuid){
+    if (uuid.size() > 16) return false;
+
+    std::string::const_iterator it = uuid.begin();
+    while (it != uuid.end() && std::isdigit(*it)) ++it;
+    return !uuid.empty() && it == uuid.end();
 }
 

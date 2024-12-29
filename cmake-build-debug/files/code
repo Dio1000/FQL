@@ -1,3 +1,4 @@
 include: files/schoolRelations
 
-Student.add(100)
+Student.add(123, Darian, Raul, 0)
+

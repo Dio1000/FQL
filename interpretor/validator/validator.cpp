@@ -34,7 +34,8 @@ bool isKeyword(const std::string &keyword){
 
 bool isDataType(const std::string &dataType){
     if (dataType == "int" || dataType == "boolean" ||
-        dataType == "date" || dataType == "datetime") return true;
+        dataType == "date" || dataType == "datetime" ||
+        dataType == "uuid" || dataType == "UUID") return true;
 
     return false;
 }
@@ -196,3 +197,4 @@ bool relationExists(const std::string &relation, const std::vector<std::string> 
 
     return false;
 }
+

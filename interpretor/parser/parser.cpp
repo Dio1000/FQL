@@ -10,6 +10,10 @@
 #include "../../io/io.h"
 
 std::unordered_set<unsigned long> errorLines;
+std::unordered_set<unsigned long> warningLines;
+std::unordered_set<std::string> createdRelations;
+std::unordered_set<std::string> usedRelations;
+
 std::vector<std::string> warnings;
 std::vector<std::string> errors;
 
@@ -18,6 +22,10 @@ void logError(const std::string& errorMessage, unsigned long lineNumber) {
         errors.push_back(errorMessage);
         errorLines.insert(lineNumber);
     }
+}
+
+void logWarning(const std::string& warningMessage) {
+    warnings.push_back(warningMessage);
 }
 
 int parseCode(const std::vector<std::string>& codeLines) {
@@ -56,6 +64,7 @@ int parseCode(const std::vector<std::string>& codeLines) {
             index++;
         }
     }
+    getWarnings();
 
     if (!errors.empty()) {
         std::cout << "Build failed!" << std::endl;
@@ -63,6 +72,7 @@ int parseCode(const std::vector<std::string>& codeLines) {
         return false;
     }
 
+    if (!warnings.empty()) showMessages();
     std::cout << "Build successful!" << std::endl;
     return true;
 }
@@ -122,6 +132,7 @@ int parseRelation(int index, const std::vector<std::string>& codeLines) {
         return -1;
     }
 
+    createdRelations.insert(tokens[1]);
     return index + 1;
 }
 
@@ -237,6 +248,7 @@ int parseMethod(int index, const std::vector<std::string> &codeLines){
         logError("Syntax error at line " + tokens[2] + "! " + tokens[1] + " is not a valid relation!", index);
         return -1;
     }
+    usedRelations.insert(tokens[1]);
     index += 2;
 
     tokens = split(codeLines[index], ";");
@@ -247,33 +259,136 @@ int parseMethod(int index, const std::vector<std::string> &codeLines){
     }
     index++;
 
-    if (method == "add") return parseAdd(index + 1, relation, codeLines);
+    if (method == "add") return parseAdd(index, relation, codeLines);
     return -1;
 }
 
-int parseAdd(int index, const std::string &relation, const std::vector<std::string> &codeLines){
+void validConstantDataTypes(int index, const std::string &argumentType, const std::vector<std::string> &tokens){
+    if (argumentType == "UUID"){
+        if (!isUUID(tokens[1])) {
+            logError("Syntax error at line " + tokens[2] + "! Expected type 'UUID' for argument.", index);
+        }
+    }
+    if (argumentType == "int") {
+        if (!isNumber(tokens[1])) {
+            logError("Syntax error at line " + tokens[2] + "! Expected type 'int' for argument.", index);
+        }
+    }
+}
+
+void validIdentifierDataTypes(int index, const std::string &argumentType, const std::vector<std::string> &tokens){
+    if (argumentType == "UUID"){
+        if (!isUUID(tokens[1])) {
+            logError("Syntax error at line " + tokens[2] + "! Expected type 'UUID' for argument.", index);
+        }
+    }
+    if (argumentType == "boolean") {
+        if (!isBoolean(tokens[1])) {
+            logError("Syntax error at line " + tokens[2] + "! Expected type 'boolean' for argument.", index);
+        }
+    }
+    else if (argumentType == "date") {
+        if (!isDate(tokens[1])) {
+            logError("Syntax error at line " + tokens[2] + "! Expected type 'date' for argument.", index);
+        }
+    }
+    else if (argumentType == "datetime") {
+        if (!isDateTime(tokens[1])) {
+            logError("Syntax error at line " + tokens[2] + "! Expected type 'datetime' for argument.", index);
+        }
+    }
+    else if (argumentType.find("char(") == 0) {
+        unsigned long startIndex = argumentType.find('(');
+        unsigned long endIndex = argumentType.find(')');
+        if (startIndex != std::string::npos && endIndex != std::string::npos && endIndex > startIndex) {
+            int size = std::stoi(argumentType.substr(startIndex + 1, endIndex - startIndex - 1));
+            if (!isChar(tokens[1], size)) {
+                logError("Syntax error at line " + tokens[2] + "! Expected type 'char(" + std::to_string(size) +
+                         ")' for argument.", index);
+            }
+        }
+    }
+    else if (argumentType.find("varchar(") == 0) {
+        unsigned long startIndex = argumentType.find('(');
+        unsigned long endIndex = argumentType.find(')');
+        if (startIndex != std::string::npos && endIndex != std::string::npos && endIndex > startIndex) {
+            int size = std::stoi(argumentType.substr(startIndex + 1, endIndex - startIndex - 1));
+            if (!isVarchar(tokens[1], size)) {
+                logError("Syntax error at line " + tokens[2] + "! Expected type 'varchar(" + std::to_string(size) +
+                         ")' for argument.", index);
+            }
+        }
+    }
+}
+
+int parseArgument(int index, const std::string &argumentType, const std::vector<std::string> &codeLines) {
     auto tokens = split(codeLines[index], ";");
-    if (tokens[0] != "Separator" || tokens[1] != "("){
+
+    if (tokens[0] == "Constant") {
+        validConstantDataTypes(index, argumentType, tokens);
+    }
+    else if (tokens[0] == "Identifier") {
+        validIdentifierDataTypes(index, argumentType, tokens);
+    }
+    else logError("Syntax error at line " + tokens[2] + "! Unexpected argument type.", index);
+
+    return index + 1;
+}
+
+int parseAdd(int index, const std::string &relation, const std::vector<std::string> &codeLines) {
+    auto tokens = split(codeLines[index], ";");
+    if (tokens[0] != "Separator" || tokens[1] != "(") {
         logError("Syntax error at line " + tokens[2] + "! Expected '(' after method call!", index);
         return -1;
     }
+
     index++;
+    tokens = split(codeLines[index], ";");
+    if (tokens[0] == "Separator" && tokens[1] == ")") {
+        logError("Syntax error at line " + tokens[2] + "! No arguments provided to add method!", index);
+        return -1;
+    }
 
     std::vector<std::string> attributes = getRelationAttributes(relation, codeLines);
     int attributeCount = 0;
 
-    tokens = split(codeLines[index], ";");
-    while (tokens[1] != ")"){
-        if (tokens[0] == "Constant"){
-
+    while (true) {
+        index = parseArgument(index, attributes[attributeCount], codeLines);
+        if (index == -1) {
+            return -1;
         }
-        else if (tokens[0] == "Separator"){
 
-        }
-        else if (tokens[0] == "Identifier"){
+        tokens = split(codeLines[index], ";");
+        attributeCount++;
 
+        if (tokens[1] == ")") {
+            break;
+        } else if (tokens[1] != ",") {
+            logError("Syntax error at line " + tokens[2] + "! Expected ',' or ')'!", index);
+            return -1;
         }
+
+        index++;
     }
+
+    if (attributeCount != attributes.size()) {
+        logError("Syntax error! Expected " + std::to_string(attributes.size()) +
+                 " arguments but got " + std::to_string(attributeCount) + "!", index);
+        return -1;
+    }
+
+    return index + 1;
+}
+
+void getWarnings(){
+    getUnusedRelationsWarnings();
+}
+
+void getUnusedRelationsWarnings(){
+    for (const auto& relation: createdRelations)
+        if (!usedRelations.contains(relation)) {
+            logWarning("Relation " + relation + " is created but never queried!");
+        }
 }
 
 void showMessages() {
