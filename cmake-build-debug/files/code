@@ -1,4 +1,18 @@
 include: files/schoolRelations
 
-Student.add(123, Darian, Raul, 0)
+Student.add(123, "Darian", "Raul", True)
+Teacher.add(453, 123, "Radu", "Balan")
 
+Student.update(Name) {
+    (Name == "Darian" or Name == "Codrin") and
+    (isRegistered == False)
+} set {
+    isRegistered = True
+}
+
+let studentCNPs = Student.fetch(CNP)
+let studentFullNames = Student.fetch(name, surname).join(" ")
+
+let registeredStudents = Student.fetch(name) where {
+    isRegistered == True
+}

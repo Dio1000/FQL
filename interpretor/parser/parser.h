@@ -2,13 +2,6 @@
 #define FQL_PARSER_H
 
 /**
- * Auxiliary functions for logging errors.
- * @param errorMessage Error message to log.
- * @param lineNumber Number of the line that has an error.
- */
-void logError(const std::string& errorMessage, unsigned long lineNumber);
-
-/**
  * Parses the code to check for syntax errors.
  * @param codeLines Lines of code to parse.
  * @return Index of the next parsed line.
@@ -22,22 +15,6 @@ int parseCode(const std::vector<std::string> &codeLines);
  * @return Index of the next parsed line.
  */
 int parseSchema(int index, const std::vector<std::string> &codeLines);
-
-/**
- * Parses the scanned lines when finding a 'using' keyword to check for syntax errors.
- * @param index Index of the line.
- * @param codeLines Lines of the code to parse.
- * @return Index of the next parsed line.
- */
-int parseUsing(int index, const std::vector<std::string> &codeLines);
-
-/**
- * Parses the scanned lines when finding an attribute to check for syntax errors.
- * @param index Index of the line.
- * @param codeLines Lines of the code to parse.
- * @return Index of the next parsed line.
- */
-int parseAttribute(int index, const std::vector<std::string> &codeLines);
 
 /**
  * Parses the scanned lines when finding a relation to check for syntax errors.
@@ -57,6 +34,22 @@ int parseRelation(int index, const std::vector<std::string> &codeLines);
 int parseRelationAttributes(int index, const std::vector<std::string> &codeLines);
 
 /**
+ * Parses the scanned lines when finding an attribute to check for syntax errors.
+ * @param index Index of the line.
+ * @param codeLines Lines of the code to parse.
+ * @return Index of the next parsed line.
+ */
+int parseAttribute(int index, const std::vector<std::string> &codeLines);
+
+/**
+ * Parses the scanned lines when finding a 'using' keyword to check for syntax errors.
+ * @param index Index of the line.
+ * @param codeLines Lines of the code to parse.
+ * @return Index of the next parsed line.
+ */
+int parseUsing(int index, const std::vector<std::string> &codeLines);
+
+/**
  * Parses a method that can be called with a relation identifier.
  * @param index Index of the line.
  * @param codeLines Lines of the code to parse.
@@ -64,14 +57,6 @@ int parseRelationAttributes(int index, const std::vector<std::string> &codeLines
  */
 int parseMethod(int index, const std::vector<std::string> &codeLines);
 
-/**
- * Parses an argument passed to a function.
- * @param index Index of the line.
- * @param argumentType Type of the argument required.
- * @param codeLines Lines of the code to parse.
- * @return Index of the next parsed line.
- */
-int parseArgument(int index, const std::string &argumentType, const std::vector<std::string> &codeLines);
 
 /**
  * Parses the add method for relations.
@@ -83,9 +68,56 @@ int parseArgument(int index, const std::string &argumentType, const std::vector<
 int parseAdd(int index, const std::string &relation, const std::vector<std::string> &codeLines);
 
 /**
- * Shows the warning and error messages in case the build fails.
+ * Parses the fetch method for relations.
+ * @param index Index of the line.
+ * @param relation Relation to get the attributes from.
+ * @param codeLines Lines of code to parse.
+ * @return Index of the next parsed line.
  */
-void showMessages();
+int parseFetch(int index, const std::string &relation, const std::vector<std::string> &codeLines);
+
+/**
+ * Parses the update method for relations.
+ * @param index Index of the line.
+ * @param relation Relation to get the attributes from.
+ * @param codeLines Lines of code to parse.
+ * @return Index of the next parsed line.
+ */
+int parseUpdate(int index, const std::string &relation, const std::vector<std::string> &codeLines);
+
+/**
+ * Parses the join method for relations.
+ * @param index Index of the line.
+ * @param relation Relation to get the attributes from.
+ * @param codeLines Lines of code to parse.
+ * @return Index of the next parsed line.
+ */
+int parseJoin(int index, const std::vector<std::string> &codeLines);
+
+/**
+ * Parses an argument passed to a function.
+ * @param index Index of the line.
+ * @param argumentType Type of the argument required.
+ * @param codeLines Lines of the code to parse.
+ * @return Index of the next parsed line.
+ */
+int parseArgument(int index, const std::string &argumentType, const std::vector<std::string> &codeLines);
+
+/**
+ * Parses a constant data type of a relation.
+ * @param index Index of the line.
+ * @param argumentType Type of the argument required.
+ * @param tokens Tokens of the code to parse.
+ */
+void validConstantDataTypes(int index, const std::string &argumentType, const std::vector<std::string> &tokens);
+
+/**
+ * Parses an identifier data type of a relation.
+ * @param index Index of the line.
+ * @param argumentType Type of the argument required.
+ * @param tokens Tokens of the code to parse.
+ */
+void validIdentifierDataTypes(int index, const std::string &argumentType, const std::vector<std::string> &tokens);
 
 /**
  * Gets all the warnings regarding the scanned lines.
@@ -97,8 +129,16 @@ void getWarnings();
  */
 void getUnusedRelationsWarnings();
 
-void validConstantDataTypes(int index, const std::string &argumentType, const std::vector<std::string> &tokens);
+/**
+ * Auxiliary functions for logging errors.
+ * @param errorMessage Error message to log.
+ * @param lineNumber Number of the line that has an error.
+ */
+void logError(const std::string& errorMessage, unsigned long lineNumber);
 
-void validIdentifierDataTypes(int index, const std::string &argumentType, const std::vector<std::string> &tokens);
+/**
+ * Shows the warning and error messages in case the build fails.
+ */
+void showMessages();
 
 #endif //FQL_PARSER_H

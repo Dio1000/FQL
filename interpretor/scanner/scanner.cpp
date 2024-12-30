@@ -34,9 +34,10 @@ std::vector<std::string> readCode(const std::string& filePath) {
 }
 
 std::vector<std::string> scanLine(const std::string& line) {
-    std::regex keywordsRegex(R"(^\s*(include|schema|relation|varchar|int|uuid|UUID|date|boolean|PK|FK|nullable|char|datetime|using|nullable|not null|NULLABLE|NOT NULL))");
-    std::regex methodRegex(R"(^\s*(add|delete|fetch))");
-    std::regex separatorRegex(R"(^\s*(->|:|=|\+|-|\(|\)|\{|\}|\.|\,))");
+    std::regex keywordsRegex(R"(^\s*(include|schema|relation|let|varchar|int|uuid|UUID|date|boolean|as|and|or
+                                    |PK|FK|nullable|char|datetime|using|nullable|not null|NULLABLE|NOT NULL))");
+    std::regex methodRegex(R"(^\s*(add|delete|fetch|update|join))");
+    std::regex separatorRegex(R"(^\s*(==|->|:|=|\+|-|\(|\)|\{|\}|\.|\,))");
     std::regex constantRegex(R"(^\s*(-?\d+(\.\d+)?|\"(?:\\.|[^\"])*\"))");
     std::regex identifierRegex(R"(^\s*[a-zA-Z0-9_\-/\\]+)");
     std::regex endOfFileRegex(R"(^$)");

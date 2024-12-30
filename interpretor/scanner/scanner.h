@@ -25,6 +25,4 @@ std::vector<std::string> scanCode(const std::string &filePath, std::unordered_se
  */
 std::vector<std::string> scanLine(const std::string &line);
 
-int parseInclude(int index, const std::vector<std::string> &codeLines);
-
 #endif //FQL_SCANNER_H

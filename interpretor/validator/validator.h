@@ -16,6 +16,14 @@ std::vector<std::string> getSchemas(const std::vector<std::string> &codeLines);
 std::vector<std::string> getRelations(const std::vector<std::string> &codeLines);
 
 /**
+ * Checks whether an attribute has been declared in a relation.
+ * @param attribute Attribute to check for.
+ * @param attributes Attributes of the relation.
+ * @return True if the attribute is contained in the relation, false otherwise.
+ */
+bool isAttribute(const std::string &attribute, const std::vector<std::string> &attributes);
+
+/**
  * Constructs a map with the relations as keys and the schema they belong to as the value,
  * or "NULL" in case the relation does not belong to any schema.
  * @param codeLines Lines of code to fetch from.
@@ -25,8 +33,17 @@ std::unordered_map<std::string, std::string> getRelationSchema(const std::vector
 
 /**
  * Fetches all data types required for a relation.
+ * @param relation relation to fetch from.
  * @param codeLines Lines of code to fetch from.
  * @return Vector of strings containing the data types required for a relation.
+ */
+std::vector<std::string> getRelationDataTypes(const std::string &relation, const std::vector<std::string> &codeLines);
+
+/**
+ * Fetches all attributes from a relation.
+ * @param relation Relation to fetch from.
+ * @param codeLines Lines of code to fetch from.
+ * @return Vector of strings containing all the attribute names for a relation.
  */
 std::vector<std::string> getRelationAttributes(const std::string &relation, const std::vector<std::string> &codeLines);
 
@@ -104,6 +121,16 @@ bool isMethod(const std::string &method);
  * @return True if the string is a data type that requires parameters, false otherwise.
  */
 bool isParameterDataType(const std::string &dataType);
+
+/**
+ * Parses an expression passed inside a method.
+ * @param relation Relation for which the relation is executed.
+ * @param expressionTokens Tokens representing the expression inside the method.
+ * @return True if the expression is valid, false otherwise.
+ */
+bool isExpression(const std::string &relation, const std::vector<std::string> &expressionTokens,
+                  const std::unordered_map<std::string, std::string> &dataTypes);
+
 
 
 #endif //FQL_VALIDATOR_H

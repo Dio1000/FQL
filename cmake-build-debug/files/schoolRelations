@@ -13,7 +13,7 @@ Student -> {
 
 Teacher -> {
     CNP,UUID,PK
-    StudentCNP,varchar(20),FK
+    StudentCNP,UUID,FK
     Name,varchar(100),NULLABLE
     Surname,varchar(100),NULLABLE
 }

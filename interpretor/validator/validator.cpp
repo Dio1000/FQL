@@ -2,6 +2,7 @@
 #include <vector>
 #include <unordered_map>
 #include <regex>
+#include <iostream>
 
 #include "validator.h"
 #include "../../utils/algorithms/algorithms.h"
@@ -24,6 +25,17 @@ bool isRelation(const std::string &relation, const std::vector<std::string> &cod
     }
 
     return false;
+}
+
+bool isAttribute(const std::string &attribute, const std::vector<std::string> &attributes){
+    auto it = attributes.begin();
+    while (it != attributes.end()){
+        if (*it == attribute) return true;
+        it++;
+    }
+
+    return false;
+
 }
 
 bool isKeyword(const std::string &keyword){
@@ -49,7 +61,7 @@ bool isConstraint(const std::string &constraint){
 
 bool isMethod(const std::string &method){
     if (method == "add" || method == "delete"
-        || method == "fetch") return true;
+        || method == "fetch" || method == "update") return true;
 
     return false;
 }
@@ -127,8 +139,8 @@ std::unordered_map<std::string, std::string> getRelationSchema(const std::vector
     return relationSchemaMap;
 }
 
-std::vector<std::string> getRelationAttributes(const std::string &relation, const std::vector<std::string> &codeLines){
-    std::vector<std::string> attributes;
+std::vector<std::string> getRelationDataTypes(const std::string &relation, const std::vector<std::string> &codeLines){
+    std::vector<std::string> dataTypes;
 
     auto it = codeLines.begin();
     while (it != codeLines.end()){
@@ -138,7 +150,7 @@ std::vector<std::string> getRelationAttributes(const std::string &relation, cons
             auto tokens = split(*it, ";");
             while (tokens[1] != "}"){
                 if (tokens[0] == "Keyword" && isDataType(tokens[1])){
-                    attributes.push_back(tokens[1]);
+                    dataTypes.push_back(tokens[1]);
                     it++;
                 }
                 else if (tokens[0] == "Keyword" && isParameterDataType(tokens[1])){
@@ -148,15 +160,44 @@ std::vector<std::string> getRelationAttributes(const std::string &relation, cons
                         it++;
                         tokens = split(*it, ";");
                     }
-                    attributes.push_back(attr + ")");
+                    dataTypes.push_back(attr + ")");
                 }
                 else it++;
                 tokens = split(*it, ";");
             }
-            if (!attributes.empty()) return attributes;
+            if (!dataTypes.empty()) return dataTypes;
         }
         it++;
     }
+    return dataTypes;
+}
+
+std::vector<std::string> getRelationAttributes(const std::string &relation, const std::vector<std::string> &codeLines) {
+    std::vector<std::string> attributes;
+
+    for (auto it = codeLines.begin(); it != codeLines.end(); ++it) {
+        auto tokens = split(*it, ";");
+        if (tokens[0] == "Identifier" && tokens[1] == relation) {
+            auto nextIt = std::next(it);
+            if (nextIt != codeLines.end()) {
+                auto nextTokens = split(*nextIt, ";");
+                if (nextTokens[1] == "->") {
+                    nextIt++;
+                    while (nextIt != codeLines.end()) {
+                        auto attrTokens = split(*nextIt, ";");
+                        if (attrTokens[1] == "}") {
+                            break;
+                        }
+                        if (attrTokens[0] == "Identifier") {
+                            attributes.push_back(attrTokens[1]);
+                        }
+                        nextIt++;
+                    }
+                }
+            }
+        }
+    }
+
     return attributes;
 }
 
@@ -196,5 +237,67 @@ bool relationExists(const std::string &relation, const std::vector<std::string> 
     }
 
     return false;
+}
+
+bool isExpression(const std::string &relation, const std::vector<std::string> &expressionTokens,
+                  const std::unordered_map<std::string, std::string> &dataTypes){
+    auto it = expressionTokens.begin();
+    bool inExpression = false;
+
+    while (it != expressionTokens.end()){
+        auto tokens = split(*it, ";");
+        if (tokens[0] == "Separator" && tokens[1] == "("){
+            if (inExpression) return false;
+            inExpression = true;
+        }
+        else if (tokens[0] == "Separator" && tokens[1] == ")"){
+            if (!inExpression) return false;
+            inExpression = false;
+        }
+        else if (tokens[0] == "Separator" && tokens[1] == "=="){
+            if (it == expressionTokens.begin() || (it + 1) == expressionTokens.end()) {
+                return false;
+            }
+
+            auto prevTokens = split(*(it - 1), ";");
+            auto nextTokens = split(*(it + 1), ";");
+
+            if (prevTokens[0] != "Identifier") return false;
+
+            auto itDataType = dataTypes.find(prevTokens[1]);
+            if (itDataType == dataTypes.end()) return false;
+
+            std::string attributeType = itDataType->second;
+
+            if (nextTokens[0] == "Constant") {
+                if (attributeType == "int" && !isNumber(nextTokens[1])) return false;
+            }
+            else if (nextTokens[0] == "Identifier") {
+                auto nextDataTypeIt = dataTypes.find(nextTokens[1]);
+                if (nextDataTypeIt == dataTypes.end()) return false;
+
+                std::string nextAttributeType = nextDataTypeIt->second;
+                if (attributeType != nextAttributeType) return false;
+            }
+            else {
+                return false;
+            }
+        }
+        else if (tokens[0] == "Separator" && tokens[1] == "+"){
+
+        }
+        else if (tokens[0] == "Separator" && tokens[1] == "-"){
+
+        }
+        else if (tokens[0] == "Identifier"){
+
+        }
+        else {
+            return false;
+        }
+
+        it++;
+    }
+    return true;
 }
 
