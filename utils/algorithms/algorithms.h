@@ -91,4 +91,7 @@ bool isDateTime(const std::string &datetime);
  */
 bool isUUID(const std::string &uuid);
 
+
+std::string unescapeString(const std::string& str);
+
 #endif

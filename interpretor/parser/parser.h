@@ -50,13 +50,20 @@ int parseAttribute(int index, const std::vector<std::string> &codeLines);
 int parseUsing(int index, const std::vector<std::string> &codeLines);
 
 /**
+ * Parses the scanned lines when finding a 'let' keyword to check for syntax errors.
+ * @param index Index of the line.
+ * @param codeLines Lines of the code to parse.
+ * @return Index of the next parsed line.
+ */
+int parseLet(int index, const std::vector<std::string> &codeLines);
+
+/**
  * Parses a method that can be called with a relation identifier.
  * @param index Index of the line.
  * @param codeLines Lines of the code to parse.
  * @return Index of the next parsed line.
  */
 int parseMethod(int index, const std::vector<std::string> &codeLines);
-
 
 /**
  * Parses the add method for relations.
@@ -77,6 +84,24 @@ int parseAdd(int index, const std::string &relation, const std::vector<std::stri
 int parseFetch(int index, const std::string &relation, const std::vector<std::string> &codeLines);
 
 /**
+ * Parses the concatenation between fetch resulting arrays.
+ * @param index Index of the line.
+ * @param relation Relation to get the attributes from.
+ * @param codeLines Lines of code to parse.
+ * @return Index of the next parsed line.
+ */
+int parseConcatenation(int index, const std::vector<std::string> &codeLines);
+
+/**
+ * Parses the where keyword for fetch expressions.
+ * @param index Index of the line.
+ * @param relation Relation to get the attributes from.
+ * @param codeLines Lines of code to parse.
+ * @return Index of the next parsed line.
+ */
+int parseWhere(int index, const std::string &relation, const std::vector<std::string> &codeLines);
+
+/**
  * Parses the update method for relations.
  * @param index Index of the line.
  * @param relation Relation to get the attributes from.
@@ -84,15 +109,6 @@ int parseFetch(int index, const std::string &relation, const std::vector<std::st
  * @return Index of the next parsed line.
  */
 int parseUpdate(int index, const std::string &relation, const std::vector<std::string> &codeLines);
-
-/**
- * Parses the join method for relations.
- * @param index Index of the line.
- * @param relation Relation to get the attributes from.
- * @param codeLines Lines of code to parse.
- * @return Index of the next parsed line.
- */
-int parseJoin(int index, const std::vector<std::string> &codeLines);
 
 /**
  * Parses an argument passed to a function.
@@ -128,6 +144,11 @@ void getWarnings();
  * Stores the messages related to unused relation warnings.
  */
 void getUnusedRelationsWarnings();
+
+/**
+ * Stores the messages related to unused arrays warnings.
+ */
+void getUnusedArraysWarning();
 
 /**
  * Auxiliary functions for logging errors.

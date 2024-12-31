@@ -16,6 +16,13 @@ std::vector<std::string> getSchemas(const std::vector<std::string> &codeLines);
 std::vector<std::string> getRelations(const std::vector<std::string> &codeLines);
 
 /**
+ * Fetches all the arrays from the lines of code.
+ * @param codeLines Lines of code to fetch the arrays from.
+ * @return Vector of strings containing all the arrays.
+ */
+std::vector<std::string> getArrays(const std::vector<std::string> &codeLines);
+
+/**
  * Checks whether an attribute has been declared in a relation.
  * @param attribute Attribute to check for.
  * @param attributes Attributes of the relation.
@@ -54,6 +61,14 @@ std::vector<std::string> getRelationAttributes(const std::string &relation, cons
  * @return True if the schema exists, false otherwise.
  */
 bool schemaAlreadyExists(const std::string &schema, const std::vector<std::string> &codeLines);
+
+/**
+ * Checks whether an array exists when declaring it.
+ * @param array Array to check.
+ * @param codeLines Lines of code to check in.
+ * @return True if the schema exists, false otherwise.
+ */
+bool arrayAlreadyExists(const std::string &array, const std::vector<std::string> &codeLines);
 
 /**
  * Checks whether a schema exists when using it before declaring relations.
@@ -128,9 +143,7 @@ bool isParameterDataType(const std::string &dataType);
  * @param expressionTokens Tokens representing the expression inside the method.
  * @return True if the expression is valid, false otherwise.
  */
-bool isExpression(const std::string &relation, const std::vector<std::string> &expressionTokens,
+bool isExpressionValid(const std::string &relation, const std::vector<std::string> &expressionTokens,
                   const std::unordered_map<std::string, std::string> &dataTypes);
-
-
 
 #endif //FQL_VALIDATOR_H

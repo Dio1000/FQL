@@ -11,8 +11,12 @@
 
 std::unordered_set<unsigned long> errorLines;
 std::unordered_set<unsigned long> warningLines;
+
 std::unordered_set<std::string> createdRelations;
 std::unordered_set<std::string> usedRelations;
+
+std::unordered_set<std::string> createdArrays;
+std::unordered_set<std::string> usedArrays;
 
 std::vector<std::string> warnings;
 std::vector<std::string> errors;
@@ -47,6 +51,9 @@ int parseCode(const std::vector<std::string>& codeLines) {
         }
         else if (tokens[0] == "Keyword" && tokens[1] == "relation") {
             index = parseRelation(index + 1, codeLines);
+        }
+        else if (tokens[0] == "Keyword" && tokens[1] == "let"){
+            index = parseLet(index + 1, codeLines);
         }
         else if (tokens[0] == "Identifier" &&
                 (split(codeLines[index + 1], ";")[0] == "Separator") &&
@@ -241,6 +248,26 @@ int parseAttribute(int index, const std::vector<std::string>& codeLines) {
     return index;
 }
 
+int parseLet(int index, const std::vector<std::string> &codeLines){
+    auto tokens = split(codeLines[index], ";");
+
+    if (tokens[0] != "Identifier" || arrayAlreadyExists(tokens[1], codeLines)){
+        logError("Syntax error at line " + tokens[2] + "! " + tokens[1] + " has already been declared!", index);
+        return -1;
+    }
+    createdArrays.insert(tokens[1]);
+    index++;
+
+    tokens = split(codeLines[index], ";");
+    if (tokens[0] != "Separator" || tokens[1] != "="){
+        logError("Syntax error at line " + tokens[2] + "! Expected '=' after array declaration!", index);
+        return -1;
+    }
+    index++;
+
+    return parseMethod(index, codeLines);
+}
+
 int parseMethod(int index, const std::vector<std::string> &codeLines){
     auto tokens = split(codeLines[index], ";");
     std::string relation = tokens[1];
@@ -383,7 +410,12 @@ int parseAdd(int index, const std::string &relation, const std::vector<std::stri
     return index + 1;
 }
 
-int parseUpdate(int index, const std::string &relation, const std::vector<std::string> &codeLines){
+int parseUpdate(int index, const std::string &relation, const std::vector<std::string> &codeLines) {
+    if (index >= codeLines.size()) {
+        logError("Index out of range!", index);
+        return -1;
+    }
+
     auto tokens = split(codeLines[index], ";");
     if (tokens[0] != "Separator" || tokens[1] != "(") {
         logError("Syntax error at line " + tokens[2] + "! Expected '(' after method call!", index);
@@ -391,22 +423,117 @@ int parseUpdate(int index, const std::string &relation, const std::vector<std::s
     }
     index++;
 
+    if (index >= codeLines.size()) {
+        logError("Syntax error: Unexpected end of input!", index);
+        return -1;
+    }
+
     tokens = split(codeLines[index], ";");
     if (tokens[0] == "Separator" && tokens[1] == ")") {
-        logError("Syntax error at line " + tokens[2] + "! No arguments provided to add method!", index);
+        logError("Syntax error at line " + tokens[2] + "! No arguments provided to method!", index);
         return -1;
     }
 
     std::vector<std::string> attributes = getRelationAttributes(relation, codeLines);
     while (true) {
-        if (index == -1) {
+        if (index >= codeLines.size()) {
+            logError("Syntax error: Missing closing ')'!", index);
             return -1;
         }
 
         tokens = split(codeLines[index], ";");
-        if (tokens[0] == "Identifier" && !isAttribute(tokens[1], attributes)){
+        if (tokens[0] == "Identifier" && !isAttribute(tokens[1], attributes)) {
             logError("Syntax error at line " + tokens[2] + "! " + tokens[1] +
-            " is not a valid attribute in " + relation + "!", index);
+                     " is not a valid attribute in " + relation + "!", index);
+            return -1;
+        }
+
+        if (tokens[1] == ")") {
+            break;
+        }
+        index++;
+    }
+    index++;
+
+    if (index >= codeLines.size()) {
+        logError("Syntax error: Unexpected end of input!", index);
+        return -1;
+    }
+
+    tokens = split(codeLines[index], ";");
+    if (tokens[0] != "Separator" || tokens[1] != "{") {
+        logError("Syntax error at line " + tokens[2] + "! Expected '{' after method call!", index);
+        return -1;
+    }
+    index++;
+
+    std::vector<std::string> expressionTokens;
+    while (true) {
+        if (index >= codeLines.size()) {
+            logError("Syntax error: Missing closing '}' in expression!", index);
+            return -1;
+        }
+
+        tokens = split(codeLines[index], ";");
+        if (tokens[1] == "}") {
+            break;
+        }
+
+        expressionTokens.push_back(codeLines[index]);
+        index++;
+    }
+    index++;
+
+    std::vector<std::string> types = getRelationDataTypes(relation, codeLines);
+    std::unordered_map<std::string, std::string> dataTypes;
+
+    if (attributes.size() != types.size()) {
+        logError("Mismatch between attributes and data types for relation " + relation, index);
+        return -1;
+    }
+
+    for (size_t i = 0; i < attributes.size(); i++) {
+        dataTypes[attributes[i]] = types[i];
+    }
+
+    if (!isExpressionValid(relation, expressionTokens, dataTypes)) {
+        logError("Syntax error: Invalid expression inside method call!", index);
+        return -1;
+    }
+
+    return index;
+}
+
+int parseFetch(int index, const std::string &relation, const std::vector<std::string> &codeLines){
+    auto tokens = split(codeLines[index], ";");
+    if (tokens[0] != "Separator" || tokens[1] != "(") {
+        logError("Syntax error at line " + tokens[2] + "! Expected '(' after method call!", index);
+        return -1;
+    }
+    index++;
+
+    if (index >= codeLines.size()) {
+        logError("Syntax error: Unexpected end of input!", index);
+        return -1;
+    }
+
+    tokens = split(codeLines[index], ";");
+    if (tokens[0] == "Separator" && tokens[1] == ")") {
+        logError("Syntax error at line " + tokens[2] + "! No arguments provided to method!", index);
+        return -1;
+    }
+
+    std::vector<std::string> attributes = getRelationAttributes(relation, codeLines);
+    while (true) {
+        if (index >= codeLines.size()) {
+            logError("Syntax error: Missing closing ')'!", index);
+            return -1;
+        }
+
+        tokens = split(codeLines[index], ";");
+        if (tokens[0] == "Identifier" && !isAttribute(tokens[1], attributes)) {
+            logError("Syntax error at line " + tokens[2] + "! " + tokens[1] +
+                     " is not a valid attribute in " + relation + "!", index);
             return -1;
         }
 
@@ -418,64 +545,75 @@ int parseUpdate(int index, const std::string &relation, const std::vector<std::s
     index++;
 
     tokens = split(codeLines[index], ";");
-    if (tokens[0] != "Separator" || tokens[1] != "{"){
-        logError("Syntax error at line " + tokens[2] + "! Expected '{' after method call!", index);
-        return -1;
-    }
-    index++;
-
-    std::vector<std::string> expressionTokens;
-    tokens = split(codeLines[index], ";");
-
-    while (tokens[1] != "}") {
-        if (index >= codeLines.size()) {
-            logError("Syntax error: Missing closing '}' in expression!", index);
+    while (true){
+        if (index == codeLines.size()) return index;
+        if (tokens[0] == "Keyword" && tokens[1] != "where") break;
+        if (tokens[0] == "Separator" && tokens[1] == "+") index = parseConcatenation(index + 1, codeLines);
+        else if (tokens[0] == "Keyword" && tokens[1] == "where") index = parseWhere(index + 1, relation, codeLines);
+        else {
+            logError("Syntax error at line " + tokens[2] + "! Expected concatenation or where keyword after fetch method call!", index);
             return -1;
         }
+    }
 
-        expressionTokens.push_back(codeLines[index]);
+    return index;
+}
+
+int parseConcatenation(int index, const std::vector<std::string> &codeLines){
+    auto tokens = split(codeLines[index], ";");
+    if (tokens[0] == "Constant") {
         index++;
-        tokens = split(codeLines[index], ";");
+        index = parseConcatenation(index + 1, codeLines);
+
+        if (index == codeLines.size()) return index;
     }
+    else if (tokens[0] == "Identifier"){
+        if (isRelation(tokens[1], codeLines)){
+            std::string relation = tokens[1];
+            index++;
 
-    std::vector<std::string> types = getRelationDataTypes(relation, codeLines);
-    std::unordered_map<std::string, std::string> dataTypes;
+            tokens = split(codeLines[index], ";");
+            if (tokens[0] != "Separator" || tokens[1] != ".") {
+                logError("Syntax error at line " + tokens[2] + "! Expected '.' before method call!", index);
+                return -1;
+            }
+            index++;
 
-    if (attributes.size() != types.size()) {
-        logError("Mismatch between attributes and data types for relation " + relation, index);
-        return {};
-    }
+            tokens = split(codeLines[index], ";");
+            if (tokens[0] != "Method" || tokens[1] != "fetch"){
+                logError("Syntax error at line " + tokens[2] + "! Expected fetch method call in concatenation chain!", index);
+                return -1;
+            }
+            index++;
 
-    for (size_t i = 0; i < attributes.size(); i++) {
-        dataTypes[attributes[i]] = types[i];
-    }
-
-    if (!isExpression(relation, expressionTokens, dataTypes)) {
-        logError("Syntax error at line + " + tokens[2] +
-                ": Invalid expression inside method call!", index);
-        return -1;
+            index = parseFetch(index, relation, codeLines);
+            if (index == codeLines.size()) return index;
+        }
     }
 
     return index + 1;
-
 }
 
-int parseFetch(int index, const std::string &relation, const std::vector<std::string> &codeLines){
-    return index + 1;
-}
+int parseWhere(int index, const std::string &relation, const std::vector<std::string> &codeLines){
 
-int parseJoin(int index, const std::vector<std::string> &codeLines){
-    return index + 1;
 }
 
 void getWarnings(){
     getUnusedRelationsWarnings();
+    getUnusedArraysWarning();
 }
 
 void getUnusedRelationsWarnings(){
     for (const auto& relation: createdRelations)
         if (!usedRelations.contains(relation)) {
             logWarning("Relation " + relation + " is created but never queried!");
+        }
+}
+
+void getUnusedArraysWarning(){
+    for (const auto& array: createdArrays)
+        if (!usedArrays.contains(array)) {
+            logWarning("Array " + array + " is created but never queried!");
         }
 }
 

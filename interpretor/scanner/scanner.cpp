@@ -34,11 +34,11 @@ std::vector<std::string> readCode(const std::string& filePath) {
 }
 
 std::vector<std::string> scanLine(const std::string& line) {
-    std::regex keywordsRegex(R"(^\s*(include|schema|relation|let|varchar|int|uuid|UUID|date|boolean|as|and|or
-                                    |PK|FK|nullable|char|datetime|using|nullable|not null|NULLABLE|NOT NULL))");
-    std::regex methodRegex(R"(^\s*(add|delete|fetch|update|join))");
-    std::regex separatorRegex(R"(^\s*(==|->|:|=|\+|-|\(|\)|\{|\}|\.|\,))");
-    std::regex constantRegex(R"(^\s*(-?\d+(\.\d+)?|\"(?:\\.|[^\"])*\"))");
+    // Updated regex patterns
+    std::regex keywordsRegex(R"(^\s*(include|schema|relation|let|varchar|int|uuid|UUID|date|boolean|PK|FK|nullable|char|datetime|using|nullable|not null|NULLABLE|NOT NULL|where|set|default))");
+    std::regex methodRegex(R"(^\s*(add|delete|fetch|update))");
+    std::regex separatorRegex(R"(^\s*(and|or|>|<|>=|<=|!=|==|->|:|=|\+|-|\(|\)|\{|\}|\.|\,))");
+    std::regex constantRegex(R"(^\s*(-?\d+(\.\d+)?|\"([^\"\\]|\\.)*\"|[Tt][Rr][Uu][Ee]|[Ff][Aa][Ll][Ss][Ee]))");
     std::regex identifierRegex(R"(^\s*[a-zA-Z0-9_\-/\\]+)");
     std::regex endOfFileRegex(R"(^$)");
     std::regex errorRegex(R"(\S+)");
@@ -53,7 +53,7 @@ std::vector<std::string> scanLine(const std::string& line) {
             tokens.push_back("Keyword;" + strip(match.str(1), ' '));
             remainingString = remainingString.substr(match.length());
         }
-        else if (std::regex_search(remainingString, match, separatorRegex)) { // Match separator first
+        else if (std::regex_search(remainingString, match, separatorRegex)) {
             tokens.push_back("Separator;" + strip(match.str(1), ' '));
             remainingString = remainingString.substr(match.length());
         }
@@ -62,7 +62,12 @@ std::vector<std::string> scanLine(const std::string& line) {
             remainingString = remainingString.substr(match.length());
         }
         else if (std::regex_search(remainingString, match, constantRegex)) {
-            tokens.push_back("Constant;" + strip(match.str(1), ' '));
+            std::string constant = strip(match.str(1), ' ');
+            if (constant.front() == '"' && constant.back() == '"') {
+                constant = constant.substr(1, constant.length() - 2); // Remove quotes
+                constant = unescapeString(constant); // Unescape the string
+            }
+            tokens.push_back("Constant;" + constant);
             remainingString = remainingString.substr(match.length());
         }
         else if (std::regex_search(remainingString, match, identifierRegex)) {

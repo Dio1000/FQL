@@ -149,3 +149,27 @@ bool isUUID(const std::string &uuid){
     return !uuid.empty() && it == uuid.end();
 }
 
+std::string unescapeString(const std::string& str) {
+    std::string result;
+    bool inEscape = false;
+
+    for (size_t i = 0; i < str.size(); ++i) {
+        if (inEscape) {
+            // If we are in an escape sequence, append the corresponding character
+            if (str[i] == '\"') {
+                result += '\"'; // Handle escaped double quote
+            } else if (str[i] == '\\') {
+                result += '\\'; // Handle escaped backslash
+            } else {
+                result += str[i]; // Handle other escape sequences (like \n, etc.)
+            }
+            inEscape = false;
+        } else if (str[i] == '\\') {
+            inEscape = true; // Start an escape sequence
+        } else {
+            result += str[i]; // Regular character
+        }
+    }
+
+    return result;
+}
