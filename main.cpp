@@ -20,3 +20,4 @@ int main() {
 }
 
 //TODO fix some bug messages from relation attributes
+//TODO allow array declaration to start with a constant

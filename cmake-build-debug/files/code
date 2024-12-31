@@ -4,5 +4,4 @@ Student.add(123, "Darian", "Raul", True)
 Teacher.add(453, 123, "Radu", "Balan")
 
 let studentNames = Student.fetch(Name)
-let studentFullNames = Student.fetch(Name) + " " Student.fetch(Surname)
-let studentCNPs = Student.fetch(CNP)
+let fullNames = Student.fetch(Name) + " " + Student.fetch(Surname)

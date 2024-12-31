@@ -504,8 +504,9 @@ int parseUpdate(int index, const std::string &relation, const std::vector<std::s
     return index;
 }
 
-int parseFetch(int index, const std::string &relation, const std::vector<std::string> &codeLines){
+int parseFetch(int index, const std::string& relation, const std::vector<std::string>& codeLines) {
     auto tokens = split(codeLines[index], ";");
+
     if (tokens[0] != "Separator" || tokens[1] != "(") {
         logError("Syntax error at line " + tokens[2] + "! Expected '(' after method call!", index);
         return -1;
@@ -519,11 +520,12 @@ int parseFetch(int index, const std::string &relation, const std::vector<std::st
 
     tokens = split(codeLines[index], ";");
     if (tokens[0] == "Separator" && tokens[1] == ")") {
-        logError("Syntax error at line " + tokens[2] + "! No arguments provided to method!", index);
+        logError("Syntax error at line " + tokens[2] + "! No arguments provided to fetch method!", index);
         return -1;
     }
 
     std::vector<std::string> attributes = getRelationAttributes(relation, codeLines);
+    bool argumentParsed = false;
     while (true) {
         if (index >= codeLines.size()) {
             logError("Syntax error: Missing closing ')'!", index);
@@ -532,9 +534,12 @@ int parseFetch(int index, const std::string &relation, const std::vector<std::st
 
         tokens = split(codeLines[index], ";");
         if (tokens[0] == "Identifier" && !isAttribute(tokens[1], attributes)) {
-            logError("Syntax error at line " + tokens[2] + "! " + tokens[1] +
-                     " is not a valid attribute in " + relation + "!", index);
+            logError("Syntax error at line " + tokens[2] + "! " + tokens[1] + " is not a valid attribute in " + relation + "!", index);
             return -1;
+        }
+
+        if (tokens[0] == "Identifier") {
+            argumentParsed = true;
         }
 
         if (tokens[1] == ")") {
@@ -542,33 +547,60 @@ int parseFetch(int index, const std::string &relation, const std::vector<std::st
         }
         index++;
     }
+
+    if (!argumentParsed) {
+        logError("Syntax error at line " + tokens[2] + "! Fetch method expects at least one argument!", index);
+        return -1;
+    }
     index++;
 
     tokens = split(codeLines[index], ";");
-    while (true){
-        if (index == codeLines.size()) return index;
-        if (tokens[0] == "Keyword" && tokens[1] != "where") break;
-        if (tokens[0] == "Separator" && tokens[1] == "+") index = parseConcatenation(index + 1, codeLines);
-        else if (tokens[0] == "Keyword" && tokens[1] == "where") index = parseWhere(index + 1, relation, codeLines);
-        else {
-            logError("Syntax error at line " + tokens[2] + "! Expected concatenation or where keyword after fetch method call!", index);
+    if (tokens[0] == "Separator" && tokens[1] == "+") {
+        index++;
+
+        tokens = split(codeLines[index], ";");
+        if ((tokens[0] != "Constant" && tokens[0] != "Identifier") || tokens[1].empty()) {
+            logError("Syntax error at line " + tokens[2] + "! Expected a valid identifier or constant after '+'.", index);
             return -1;
+        }
+        index = parseConcatenation(index + 1, codeLines);
+    }
+
+    while (index < codeLines.size()) {
+        tokens = split(codeLines[index], ";");
+        if (tokens[0] == "Keyword" && tokens[1] == "where") {
+            index = parseWhere(index + 1, relation, codeLines);
+        } else if (tokens[0] == "Separator" && tokens[1] == "+") {
+            index = parseConcatenation(index + 1, codeLines);
+        } else {
+            break;
         }
     }
 
     return index;
 }
 
-int parseConcatenation(int index, const std::vector<std::string> &codeLines){
+int parseConcatenation(int index, const std::vector<std::string>& codeLines) {
     auto tokens = split(codeLines[index], ";");
+
     if (tokens[0] == "Constant") {
         index++;
-        index = parseConcatenation(index + 1, codeLines);
+        tokens = split(codeLines[index], ";");
 
-        if (index == codeLines.size()) return index;
+        if (tokens[0] == "Separator" && tokens[1] == "+") {
+            index++;
+            tokens = split(codeLines[index], ";");
+
+            if (tokens.empty() || (tokens[0] != "Constant" && tokens[0] != "Identifier")) {
+                logError("Syntax error at line " + tokens[2] + "! Expected constant or identifier after '+' operator.", index);
+                return -1;
+            }
+            return parseConcatenation(index, codeLines);
+        }
+        return index;
     }
-    else if (tokens[0] == "Identifier"){
-        if (isRelation(tokens[1], codeLines)){
+    else if (tokens[0] == "Identifier") {
+        if (isRelation(tokens[1], codeLines)) {
             std::string relation = tokens[1];
             index++;
 
@@ -580,18 +612,28 @@ int parseConcatenation(int index, const std::vector<std::string> &codeLines){
             index++;
 
             tokens = split(codeLines[index], ";");
-            if (tokens[0] != "Method" || tokens[1] != "fetch"){
+            if (tokens[0] != "Method" || tokens[1] != "fetch") {
                 logError("Syntax error at line " + tokens[2] + "! Expected fetch method call in concatenation chain!", index);
                 return -1;
             }
             index++;
 
             index = parseFetch(index, relation, codeLines);
-            if (index == codeLines.size()) return index;
+            tokens = split(codeLines[index], ";");
+
+            if (tokens[0] == "Separator" && tokens[1] == "+") {
+                index++;
+
+                tokens = split(codeLines[index], ";");
+                if (tokens.empty() || (tokens[0] != "Constant" && tokens[0] != "Identifier")) {
+                    logError("Syntax error at line " + tokens[2] + "! Expected constant or identifier after '+' operator.", index);
+                    return -1;
+                }
+                return parseConcatenation(index, codeLines);
+            }
         }
     }
-
-    return index + 1;
+    return index;
 }
 
 int parseWhere(int index, const std::string &relation, const std::vector<std::string> &codeLines){
