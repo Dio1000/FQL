@@ -34,7 +34,6 @@ std::vector<std::string> readCode(const std::string& filePath) {
 }
 
 std::vector<std::string> scanLine(const std::string& line) {
-    // Updated regex patterns
     std::regex keywordsRegex(R"(^\s*(include|schema|relation|let|varchar|int|uuid|UUID|date|boolean|PK|FK|nullable|char|datetime|using|nullable|not null|NULLABLE|NOT NULL|where|set|default))");
     std::regex methodRegex(R"(^\s*(add|delete|fetch|update))");
     std::regex separatorRegex(R"(^\s*(and|or|>|<|>=|<=|!=|==|->|:|=|\+|-|\(|\)|\{|\}|\.|\,))");
@@ -64,8 +63,8 @@ std::vector<std::string> scanLine(const std::string& line) {
         else if (std::regex_search(remainingString, match, constantRegex)) {
             std::string constant = strip(match.str(1), ' ');
             if (constant.front() == '"' && constant.back() == '"') {
-                constant = constant.substr(1, constant.length() - 2); // Remove quotes
-                constant = unescapeString(constant); // Unescape the string
+                constant = constant.substr(1, constant.length() - 2);
+                constant = unescapeString(constant);
             }
             tokens.push_back("Constant;" + constant);
             remainingString = remainingString.substr(match.length());
@@ -124,7 +123,6 @@ std::vector<std::string> scanCode(const std::string &filePath, std::unordered_se
                     }
                 }
                 else std::cerr << "Linker error: Invalid include statement in " << filePath << " at line " << lineNumber << std::endl;
-
                 break;
             }
         }
@@ -134,7 +132,6 @@ std::vector<std::string> scanCode(const std::string &filePath, std::unordered_se
                 scannedCode.push_back(token + ";" + std::to_string(lineNumber));
             }
         }
-
         lineNumber++;
     }
 

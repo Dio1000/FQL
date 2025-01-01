@@ -1,6 +1,8 @@
 #ifndef FQL_ALGORITHMS_H
 #define FQL_ALGORITHMS_H
 
+#include <unordered_map>
+
 /**
  * Auxiliary function to compute the LPS of a given pattern.
  * @param pattern Given pattern to compute the LPS for.
@@ -91,7 +93,19 @@ bool isDateTime(const std::string &datetime);
  */
 bool isUUID(const std::string &uuid);
 
-
+/**
+ * Removes all the escaping characters from a string.
+ * @param str String to remove escaping characters from.
+ * @return String without escaping characters.
+ */
 std::string unescapeString(const std::string& str);
+
+/**
+ * Helper function to return the value of a key in a map.
+ * @param map Map which maps the key to the value.
+ * @param key Key to find the value of.
+ * @return Value of the key.
+ */
+std::string getKeyValue(const std::unordered_map<std::string, std::string>& map, const std::string& key);
 
 #endif

@@ -7,7 +7,6 @@
 #include "parser.h"
 #include "../../utils/algorithms/algorithms.h"
 #include "../validator/validator.h"
-#include "../../io/io.h"
 
 std::unordered_set<unsigned long> errorLines;
 std::unordered_set<unsigned long> warningLines;
@@ -459,6 +458,13 @@ int parseUpdate(int index, const std::string &relation, const std::vector<std::s
         logError("Syntax error: Unexpected end of input!", index);
         return -1;
     }
+
+    tokens = split(codeLines[index], ";");
+    if (tokens[0] != "Keyword" || tokens[1] != "where"){
+        logError("Syntax error at line " + tokens[2] + "! Expected 'where' keyword after update method call!", index);
+        return -1;
+    }
+    index++;
 
     tokens = split(codeLines[index], ";");
     if (tokens[0] != "Separator" || tokens[1] != "{") {

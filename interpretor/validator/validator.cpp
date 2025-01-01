@@ -2,12 +2,10 @@
 #include <vector>
 #include <unordered_map>
 #include <regex>
-#include <iostream>
-#include <stack>
-#include <queue>
 
 #include "validator.h"
 #include "../../utils/algorithms/algorithms.h"
+#include "../../utils/data_structures/AST/AST.h"
 
 bool isSchema(const std::string &schema, const std::vector<std::string> &codeLines){
     std::vector<std::string> schemas = getSchemas(codeLines);
@@ -272,25 +270,55 @@ bool relationExists(const std::string &relation, const std::vector<std::string> 
     return false;
 }
 
-bool isExpressionValid(const std::string &relation, const std::vector<std::string>& expressionTokens,
-                       const std::unordered_map<std::string, std::string>& dataTypes) {
-    int index = 0;
-    std::vector<std::string> attributes;
-
-    attributes.reserve(dataTypes.size());
-    for (const auto& pair : dataTypes) {
-        attributes.push_back(pair.first);
-    }
-
-    while (index < expressionTokens.size()) {
-        auto tokens = split(expressionTokens[index], ";");
-        if (tokens[0] == "Identifier" && !isAttribute(tokens[1], attributes)) {
-            return false;
-        }
-        index++;
-    }
-
-    return true;
+bool isOperator(const std::string &op){
+    if (op == "==" || op == ">" || op == "<" || op == ">=" || op == "<="
+        || op == "and" || op == "or") return true;
+    return false;
 }
 
+bool isExpressionValid(const std::string &relation, const std::vector<std::string>& expressionTokens,
+                       const std::unordered_map<std::string, std::string>& dataTypes) {
+    std::vector<std::string> attributes;
+    attributes.reserve(dataTypes.size());
 
+    for (const auto& [key, value] : dataTypes) {
+        attributes.push_back(key);
+    }
+
+    auto *expressionTree = new AST();
+    for (const auto &token : expressionTokens){
+        auto tokens = split(token, ";");
+
+        if (tokens[0] == "Separator" && tokens[1] == "("){
+            if (expressionTree->getCurrentNode() == "Operator") return false;
+            expressionTree->createChildren();
+            expressionTree->insertInCurrentNode("Operator");
+            expressionTree->goLeft();
+        }
+        else if (tokens[0] == "Separator" && tokens[1] == ")"){
+            expressionTree->goUp();
+        }
+        else if (tokens[0] == "Identifier"){
+            if (!isAttribute(tokens[1], attributes)) return false;
+            expressionTree->insertInCurrentNode(tokens[1] + ";" + getKeyValue(dataTypes, tokens[1]));
+            expressionTree->goUp();
+        }
+        else if (tokens[0] == "Separator" && isOperator(tokens[1])){
+            if (isOperator(expressionTree->getCurrentNode())) return false;
+            expressionTree->insertInCurrentNode(tokens[1]);
+
+            if (expressionTree->rightNodeIsNull()) expressionTree->goRight();
+            else {
+                //TODO Check if the separator is valid between the children
+            }
+        }
+        else if (tokens[0] == "Constant"){
+            expressionTree->insertInCurrentNode(tokens[1]);
+            expressionTree->goUp();
+        }
+        else return false;
+    }
+
+    if (expressionTree->isEnded()) return true;
+    return false;
+}

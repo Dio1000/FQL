@@ -3,5 +3,6 @@ include: files/schoolRelations
 Student.add(123, "Darian", "Raul", True)
 Teacher.add(453, 123, "Radu", "Balan")
 
-let studentNames = Student.fetch(Name)
-let fullNames = Student.fetch(Name) + " " + Student.fetch(Surname)
+Student.update(Name) where {
+    ((Name == "Dio") and (Surname == "1000"))
+}

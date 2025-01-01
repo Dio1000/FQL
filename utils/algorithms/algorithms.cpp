@@ -1,7 +1,7 @@
 #include <string>
 #include <vector>
 #include <regex>
-
+#include <unordered_map>
 
 #include "algorithms.h"
 
@@ -155,21 +155,23 @@ std::string unescapeString(const std::string& str) {
 
     for (size_t i = 0; i < str.size(); ++i) {
         if (inEscape) {
-            // If we are in an escape sequence, append the corresponding character
-            if (str[i] == '\"') {
-                result += '\"'; // Handle escaped double quote
-            } else if (str[i] == '\\') {
-                result += '\\'; // Handle escaped backslash
-            } else {
-                result += str[i]; // Handle other escape sequences (like \n, etc.)
-            }
+            if (str[i] == '\"') result += '\"';
+            else if (str[i] == '\\') result += '\\';
+            else result += str[i];
+
             inEscape = false;
-        } else if (str[i] == '\\') {
-            inEscape = true; // Start an escape sequence
-        } else {
-            result += str[i]; // Regular character
         }
+        else if (str[i] == '\\') inEscape = true;
+        else result += str[i];
     }
 
     return result;
+}
+
+std::string getKeyValue(const std::unordered_map<std::string, std::string>& map, const std::string& key) {
+    auto it = map.find(key);
+    if (it != map.end()) {
+        return it->second;
+    }
+    else return "Null";
 }

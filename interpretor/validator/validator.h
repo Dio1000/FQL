@@ -138,6 +138,13 @@ bool isMethod(const std::string &method);
 bool isParameterDataType(const std::string &dataType);
 
 /**
+ * Checks whether a given string is a valid operator.
+ * @param op String representing the operator.
+ * @return True if the string is an operator, false otherwise.
+ */
+bool isOperator(const std::string &op);
+
+/**
  * Parses an expression passed inside a method.
  * @param relation Relation for which the relation is executed.
  * @param expressionTokens Tokens representing the expression inside the method.
