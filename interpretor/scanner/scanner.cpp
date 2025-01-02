@@ -2,10 +2,13 @@
 #include <vector>
 #include <regex>
 #include <iostream>
+#include <unordered_set>
 
 #include "scanner.h"
 #include "../../io/io.h"
 #include "../../utils/algorithms/algorithms.h"
+
+std::vector<std::string> originalCodeLines;
 
 std::vector<std::string> readCode(const std::string& filePath) {
     std::regex oneLineComment(R"(\s*--\s*.*?\s*--)");
@@ -13,6 +16,7 @@ std::vector<std::string> readCode(const std::string& filePath) {
     std::regex endMultiLineComment(R"(\s*^.*?\s*-?/)");
 
     std::vector<std::string> codeLines = readLines(filePath);
+    originalCodeLines = codeLines;
     bool inMultiLineComment = false;
 
     auto it = codeLines.begin();
@@ -33,8 +37,16 @@ std::vector<std::string> readCode(const std::string& filePath) {
     return codeLines;
 }
 
+std::string getLine(int lineNumber) {
+    if (lineNumber > 0 && lineNumber <= originalCodeLines.size()) {
+        return originalCodeLines[lineNumber - 1];
+    }
+    return "";
+}
+
 std::vector<std::string> scanLine(const std::string& line) {
-    std::regex keywordsRegex(R"(^\s*(include|schema|relation|let|varchar|int|uuid|UUID|date|boolean|PK|FK|nullable|char|datetime|using|nullable|not null|NULLABLE|NOT NULL|where|set|default))");
+    std::regex keywordsRegex(R"(^\s*(include|schema|relation|let|varchar|int|uuid|UUID|date|boolean|PK|FK|nullable|char|datetime|
+        |using|nullable|not null|NULLABLE|NOT NULL|where|set|default|set))");
     std::regex methodRegex(R"(^\s*(add|delete|fetch|update))");
     std::regex separatorRegex(R"(^\s*(and|or|>|<|>=|<=|!=|==|->|:|=|\+|-|\(|\)|\{|\}|\.|\,))");
     std::regex constantRegex(R"(^\s*(-?\d+(\.\d+)?|\"([^\"\\]|\\.)*\"|[Tt][Rr][Uu][Ee]|[Ff][Aa][Ll][Ss][Ee]))");

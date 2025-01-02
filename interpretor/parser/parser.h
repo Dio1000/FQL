@@ -1,12 +1,15 @@
 #ifndef FQL_PARSER_H
 #define FQL_PARSER_H
 
+#include <unordered_map>
+
 /**
  * Parses the code to check for syntax errors.
  * @param codeLines Lines of code to parse.
+ * @param filePath Path to the file the executable is written in.
  * @return Index of the next parsed line.
  */
-int parseCode(const std::vector<std::string> &codeLines);
+int parseCode(const std::vector<std::string> &codeLines, const std::string &filePath);
 
 /**
  * Parses the scanned lines when finding a schema to check for syntax errors.
@@ -93,6 +96,15 @@ int parseFetch(int index, const std::string &relation, const std::vector<std::st
 int parseConcatenation(int index, const std::vector<std::string> &codeLines);
 
 /**
+ * Maps attributes to their corresponding data types.
+ * @param attributes Vector of attribute names.
+ * @param types Vector of data types matching the attributes.
+ * @return Unordered map of attributes as keys and data types as values.
+ */
+std::unordered_map<std::string, std::string> buildDataTypes(const std::vector<std::string>& attributes,
+                                                            const std::vector<std::string>& types);
+
+/**
  * Parses the where keyword for fetch expressions.
  * @param index Index of the line.
  * @param relation Relation to get the attributes from.
@@ -109,6 +121,15 @@ int parseWhere(int index, const std::string &relation, const std::vector<std::st
  * @return Index of the next parsed line.
  */
 int parseUpdate(int index, const std::string &relation, const std::vector<std::string> &codeLines);
+
+/**
+ * Parses the delete method for relations.
+ * @param index Index of the line.
+ * @param relation Relation to get the attributes from.
+ * @param codeLines Lines of code to parse.
+ * @return Index of the next parsed line.
+ */
+int parseDelete(int index, const std::string &relation, const std::vector<std::string> &codeLines);
 
 /**
  * Parses an argument passed to a function.
@@ -134,6 +155,16 @@ void validConstantDataTypes(int index, const std::string &argumentType, const st
  * @param tokens Tokens of the code to parse.
  */
 void validIdentifierDataTypes(int index, const std::string &argumentType, const std::vector<std::string> &tokens);
+
+/**
+ * Checks whether a separator is valid within a given token vector.
+ * @param tokens Vector of tokens to check in.
+ * @param op Operator to check for.
+ * @param index Index of the line the tokens are in.
+ * @return True if the operator is valid, false otherwise.
+ */
+bool isValidSeparator(const std::vector<std::string> &tokens, const std::string &op, const std::string &index);
+
 
 /**
  * Gets all the warnings regarding the scanned lines.

@@ -273,7 +273,7 @@ bool relationExists(const std::string &relation, const std::vector<std::string> 
 
 bool isOperator(const std::string &op){
     if (op == "==" || op == ">" || op == "<" || op == ">=" || op == "<="
-        || op == "and" || op == "or" || op == "!=") return true;
+        || op == "and" || op == "or" || op == "!=" || op == "=") return true;
     return false;
 }
 

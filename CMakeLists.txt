@@ -43,4 +43,6 @@ add_executable(FQL main.cpp
         interpretor/executor/executor.cpp
         interpretor/executor/executor.h
         utils/data_structures/AST/ASTNode.h
-        utils/data_structures/AST/AST.h)
+        utils/data_structures/AST/AST.h
+        interpretor/builder/builder.cpp
+        interpretor/builder/builder.h)

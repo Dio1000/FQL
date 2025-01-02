@@ -19,6 +19,13 @@ std::vector<std::string> readCode(const std::string &filePath);
 std::vector<std::string> scanCode(const std::string &filePath, std::unordered_set<std::string> &scannedFiles);
 
 /**
+ * Gets a given line from the original lines of code.
+ * @param lineNumber Number of the line to fetch.
+ * @return Line from the original code with the given line number.
+ */
+std::string getLine(int lineNumber);
+
+/**
  * Scans a line and breaks it down into tokens.
  * @param line Line to be scanned.
  * @return Vector of tokens.
