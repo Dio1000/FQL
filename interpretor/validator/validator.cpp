@@ -6,6 +6,7 @@
 #include "validator.h"
 #include "../../utils/algorithms/algorithms.h"
 #include "../../utils/data_structures/AST/AST.h"
+#include <iostream>
 
 bool isSchema(const std::string &schema, const std::vector<std::string> &codeLines){
     std::vector<std::string> schemas = getSchemas(codeLines);
@@ -272,11 +273,11 @@ bool relationExists(const std::string &relation, const std::vector<std::string> 
 
 bool isOperator(const std::string &op){
     if (op == "==" || op == ">" || op == "<" || op == ">=" || op == "<="
-        || op == "and" || op == "or") return true;
+        || op == "and" || op == "or" || op == "!=") return true;
     return false;
 }
 
-bool isExpressionValid(const std::string &relation, const std::vector<std::string>& expressionTokens,
+bool isExpressionValid(const std::vector<std::string>& expressionTokens,
                        const std::unordered_map<std::string, std::string>& dataTypes) {
     std::vector<std::string> attributes;
     attributes.reserve(dataTypes.size());

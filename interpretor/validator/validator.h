@@ -146,11 +146,12 @@ bool isOperator(const std::string &op);
 
 /**
  * Parses an expression passed inside a method.
- * @param relation Relation for which the relation is executed.
  * @param expressionTokens Tokens representing the expression inside the method.
+ * @param dataTypes Map which holds the datatype of all attributes of the relation
+ * from which a method is called from.
  * @return True if the expression is valid, false otherwise.
  */
-bool isExpressionValid(const std::string &relation, const std::vector<std::string> &expressionTokens,
+bool isExpressionValid(const std::vector<std::string> &expressionTokens,
                   const std::unordered_map<std::string, std::string> &dataTypes);
 
 #endif //FQL_VALIDATOR_H

@@ -502,8 +502,8 @@ int parseUpdate(int index, const std::string &relation, const std::vector<std::s
         dataTypes[attributes[i]] = types[i];
     }
 
-    if (!isExpressionValid(relation, expressionTokens, dataTypes)) {
-        logError("Syntax error: Invalid expression inside method call!", index);
+    if (!isExpressionValid(expressionTokens, dataTypes)) {
+        logError("Syntax error at line " + tokens[2] + ": Invalid expression inside method call!", index);
         return -1;
     }
 
@@ -576,11 +576,11 @@ int parseFetch(int index, const std::string& relation, const std::vector<std::st
         tokens = split(codeLines[index], ";");
         if (tokens[0] == "Keyword" && tokens[1] == "where") {
             index = parseWhere(index + 1, relation, codeLines);
-        } else if (tokens[0] == "Separator" && tokens[1] == "+") {
-            index = parseConcatenation(index + 1, codeLines);
-        } else {
-            break;
         }
+        else if (tokens[0] == "Separator" && tokens[1] == "+") {
+            index = parseConcatenation(index + 1, codeLines);
+        }
+        else break;
     }
 
     return index;
@@ -643,7 +643,49 @@ int parseConcatenation(int index, const std::vector<std::string>& codeLines) {
 }
 
 int parseWhere(int index, const std::string &relation, const std::vector<std::string> &codeLines){
+    auto tokens = split(codeLines[index], ";");
+    if (tokens[0] != "Separator" || tokens[1] != "{"){
+        logError("Syntax error at line " + tokens[2] + "! Expected '{' after 'where' keyword!", index);
+        return -1;
+    }
+    index++;
 
+    std::vector<std::string> expressionTokens;
+    while (true) {
+        if (index >= codeLines.size()) {
+            logError("Syntax error: Missing closing '}' in expression!", index);
+            return -1;
+        }
+
+        tokens = split(codeLines[index], ";");
+        if (tokens[1] == "}") {
+            break;
+        }
+
+        expressionTokens.push_back(codeLines[index]);
+        index++;
+    }
+    index++;
+
+    std::vector<std::string> attributes = getRelationAttributes(relation, codeLines);
+    std::vector<std::string> types = getRelationDataTypes(relation, codeLines);
+    std::unordered_map<std::string, std::string> dataTypes;
+
+    if (attributes.size() != types.size()) {
+        logError("Mismatch between attributes and data types for relation " + relation, index);
+        return -1;
+    }
+
+    for (size_t i = 0; i < attributes.size(); i++) {
+        dataTypes[attributes[i]] = types[i];
+    }
+
+    if (!isExpressionValid(expressionTokens, dataTypes)) {
+        logError("Syntax error at line " + tokens[2] + ": Invalid expression inside method call!", index);
+        return -1;
+    }
+
+    return index;
 }
 
 void getWarnings(){
