@@ -41,4 +41,3 @@ void Attribute::setConstraint(std::string &_constraint) {
 std::string Attribute::getConstraint() {
     return this->constraint;
 }
-

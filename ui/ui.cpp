@@ -3,13 +3,15 @@
 #include <iostream>
 
 #include "../utils/algorithms/algorithms.h"
+#include "../io/io.h"
 #include "ui.h"
 
 int offset = 10;
 unsigned long headerSize;
 unsigned long lineLength;
 
-void showSchema(const std::vector<std::string>& lines){
+void showRelation(const std::string &filePath, const std::string &relation){
+    std::vector<std::string> lines = readLines(filePath);
     std::vector<unsigned long> lengthVector = computeLengthVector(lines);
     std::vector<std::string> headers = split(lines[0], ",");
 
@@ -17,8 +19,24 @@ void showSchema(const std::vector<std::string>& lines){
     lineLength = getMaxLength(lengthVector, headerSize);
 
     showEmptyLine(lineLength, headerSize);
+    showRelationName(relation, lineLength);
+    showEmptyLine(lineLength, headerSize);
     showLines(lines);
     showEmptyLine(lineLength, headerSize);
+}
+
+void showRelationName(const std::string &relationName, unsigned long length){
+    std::cout << "|";
+    size_t index;
+    for (index = 1 ; index < (length + offset - 1) / 2 ; index++) std::cout << " ";
+    std::cout << relationName;
+
+    while (index < length + offset - relationName.length() - 1) {
+        std::cout << " ";
+        index++;
+    }
+    std::cout << "|";
+    std::cout << std::endl;
 }
 
 void showEmptyLine(unsigned long length, unsigned long headerNumber){

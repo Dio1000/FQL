@@ -46,7 +46,7 @@ std::string getLine(int lineNumber) {
 
 std::vector<std::string> scanLine(const std::string& line) {
     std::regex keywordsRegex(R"(^\s*(include|schema|relation|let|varchar|int|uuid|UUID|date|boolean|PK|FK|nullable|char|datetime|
-        |using|nullable|not null|NULLABLE|NOT NULL|where|set|default|set))");
+        |using|nullable|not null|NULLABLE|NOT NULL|where|set|default|set|show))");
     std::regex methodRegex(R"(^\s*(add|delete|fetch|update))");
     std::regex separatorRegex(R"(^\s*(and|or|>|<|>=|<=|!=|==|->|:|=|\+|-|\(|\)|\{|\}|\.|\,))");
     std::regex constantRegex(R"(^\s*(-?\d+(\.\d+)?|\"([^\"\\]|\\.)*\"|[Tt][Rr][Uu][Ee]|[Ff][Aa][Ll][Ss][Ee]))");
@@ -129,7 +129,7 @@ std::vector<std::string> scanCode(const std::string &filePath, std::unordered_se
                     if (validFile(includedFile)) {
                         std::vector<std::string> includedTokens = scanCode(includedFile, scannedFiles);
                         scannedCode.insert(scannedCode.end(), includedTokens.begin(), includedTokens.end());
-                    } else {
+                    }else {
                         std::cerr << "Linker error: Invalid include file path " << includedFile << " in "
                                   << filePath << " at line " << lineNumber << std::endl;
                     }

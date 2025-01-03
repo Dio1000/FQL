@@ -141,6 +141,14 @@ int parseDelete(int index, const std::string &relation, const std::vector<std::s
 int parseArgument(int index, const std::string &argumentType, const std::vector<std::string> &codeLines);
 
 /**
+ * Parses the show function.
+ * @param index Index of the line.
+ * @param codeLines Lines of code to parse.
+ * @return index of the next parsed line.
+ */
+int parseShow(int index, const std::vector<std::string> &codeLines);
+
+/**
  * Parses a constant data type of a relation.
  * @param index Index of the line.
  * @param argumentType Type of the argument required.
@@ -164,7 +172,6 @@ void validIdentifierDataTypes(int index, const std::string &argumentType, const 
  * @return True if the operator is valid, false otherwise.
  */
 bool isValidSeparator(const std::vector<std::string> &tokens, const std::string &op, const std::string &index);
-
 
 /**
  * Gets all the warnings regarding the scanned lines.

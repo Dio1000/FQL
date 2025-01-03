@@ -1,0 +1,4 @@
+#ifndef FQL_VALIDATOR_H
+#define FQL_VALIDATOR_H
+
+#endif //FQL_VALIDATOR_H

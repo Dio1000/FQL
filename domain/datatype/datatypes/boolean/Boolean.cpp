@@ -21,4 +21,3 @@ int Boolean::getMaxLength() {
 void Boolean::setMaxLength(int newMaxLength) {
     this->maxLength = newMaxLength;
 }
-

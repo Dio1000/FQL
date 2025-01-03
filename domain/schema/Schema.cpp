@@ -49,7 +49,11 @@ int Schema::getRelationNumber() const {
 
 void Schema::storeSchema() const {
     std::string directoryPath = "DB/" + this->getName();
+    if (validDirectory(directoryPath)) return;
+
     createDirectory(directoryPath.c_str());
+    std::string filePath = directoryPath + "/currentRID";
+    createFile(filePath);
 }
 
 bool Schema::hasRelation(Relation *relation) {

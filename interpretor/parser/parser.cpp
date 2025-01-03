@@ -66,6 +66,9 @@ int parseCode(const std::vector<std::string>& codeLines, const std::string &file
         else if (tokens[0] == "Keyword" && tokens[1] == "let"){
             index = parseLet(index + 1, codeLines);
         }
+        else if (tokens[0] == "Keyword" && tokens[1] == "show"){
+            index = parseShow(index + 1, codeLines);
+        }
         else if (tokens[0] == "Identifier" &&
                  (split(codeLines[index + 1], ";")[0] == "Separator") &&
                  (split(codeLines[index + 1], ";")[1] == ".")) {
@@ -757,6 +760,22 @@ int parseWhere(int index, const std::string& relation, const std::vector<std::st
 
     buildWhere(builderLines, whereExpression);
     return index;
+}
+
+int parseShow(int index, const std::vector<std::string> &codeLines){
+    auto tokens = split(codeLines[index], ";");
+    if (!isValidSeparator(tokens, ":", tokens[2])) return -1;
+    index++;
+
+    tokens = split(codeLines[index], ";");
+    if (!isRelation(tokens[1], codeLines)){
+        logError("Syntax error at line " + tokens[2] + "! "
+        + tokens[1] + " is not a valid relation!", index);
+        return -1;
+    }
+
+    buildShow(builderLines, tokens[1]);
+    return index + 1;
 }
 
 void getWarnings(){

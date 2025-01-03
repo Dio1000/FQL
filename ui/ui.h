@@ -3,9 +3,16 @@
 
 /**
  * Displays a given vector of lines (in CSV format).
- * @param lines Lines to be outputted as the elements of the schema.
+ * @param filePath Path of the file with the lines.
+ * @param relation Name of the relation.
  */
-void showSchema(const std::vector<std::string>& lines);
+void showRelation(const std::string &filePath, const std::string &relation);
+
+/**
+ * Displays the relation name in the middle of the header.
+ * @param relationName Name of the relation.
+ */
+void showRelationName(const std::string &relationName, unsigned long length);
 
 /**
  * Displays a line of the form "+----------+" of a given length.

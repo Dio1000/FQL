@@ -65,3 +65,7 @@ void buildWhere(std::vector<std::string> &builderLines, const std::string &where
 void buildConcatenate(std::vector<std::string> &builderLines, const std::string &op){
     builderLines.push_back("concatenate:" + op);
 }
+
+void buildShow(std::vector<std::string> &builderLines, const std::string &relation){
+    builderLines.push_back("show:" + relation);
+}

@@ -23,7 +23,7 @@ void Relation::setName(const std::string &newName) {
 }
 
 Attribute* Relation::getAttribute(int index) const {
-    if (index < 1 || index > static_cast<int>(attributes.size())) {
+    if (index < 1 || index > static_cast<int>(attributes.size()) + 1) {
         throw std::out_of_range("Attribute index out of range");
     }
     return attributes[index - 1];
@@ -47,8 +47,10 @@ int Relation::getAttributeNumber() const {
 
 void Relation::storeRelation(const std::string &schema) const {
     std::string filePath = "DB/" + schema + "/" + this->getName();
+    if (validFile(filePath)) return;
+
     createFile(filePath);
-    std::string attributeHeader;
+    std::string attributeHeader = "RID,";
 
     for (int index = 0 ; index < attributes.size() ; index++){
         if (index != attributes.size() - 1) attributeHeader += attributes[index]->getName() + ",";

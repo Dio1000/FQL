@@ -153,5 +153,4 @@ bool AST::isEnded() const {
     return currentNode == end;
 }
 
-
 #endif

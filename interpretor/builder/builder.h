@@ -91,4 +91,11 @@ void buildWhere(std::vector<std::string> &builderLines, const std::string &where
  */
 void buildConcatenate(std::vector<std::string> &builderLines, const std::string &op);
 
+/**
+ * Builds the execution lines for the show function.
+ * @param builderLines Builder lines to save for the execution.
+ * @param relation Relation to show
+ */
+void buildShow(std::vector<std::string> &builderLines, const std::string &relation);
+
 #endif //FQL_BUILDER_H
