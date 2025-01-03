@@ -6,13 +6,13 @@
 Attribute::Attribute() {
     this->name = "null";
     this->dataType = nullptr;
-    this->nullable = false;
+    this->constraint = "null";
 }
 
-Attribute::Attribute(const std::string &name, Datatype *dataType, bool nullable) {
+Attribute::Attribute(const std::string &name, Datatype *dataType, const std::string &constraint) {
     this->name = name;
     this->dataType = dataType;
-    this->nullable = nullable;
+    this->constraint = constraint;
 }
 
 void Attribute::setName(std::string &_name) {
@@ -34,10 +34,11 @@ Datatype &Attribute::getDataType() {
     return *this->dataType;
 }
 
-void Attribute::setNullable(bool _nullable) {
-    this->nullable = _nullable;
+void Attribute::setConstraint(std::string &_constraint) {
+    this->constraint = _constraint;
 }
 
-bool Attribute::getNullable() {
-    return this->nullable;
+std::string Attribute::getConstraint() {
+    return this->constraint;
 }
+

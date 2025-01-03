@@ -3,11 +3,11 @@
 #include "./domain/relation/Relation.h"
 #include "./interpretor/parser/parser.h"
 #include "./interpretor/scanner/scanner.h"
+#include "./interpretor/executor/executor.h"
+#include "./io/io.h"
 
 int main() {
-    std::unordered_set<std::string> scannedFiles;
-    std::vector<std::string> tokens = scanCode("files/code", scannedFiles);
-    parseCode(tokens, "codeExecute");
+    executeCode("executables/codeExecute");
 }
 
 //TODO fix some bug messages from relation attributes

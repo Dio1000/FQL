@@ -11,11 +11,11 @@ class Attribute {
 private:
     std::string name;
     Datatype* dataType;
-    bool nullable;
+    std::string constraint;
 
 public:
     Attribute();
-    Attribute(const std::string &name, Datatype *dataType, bool nullable);
+    Attribute(const std::string &name, Datatype *dataType, const std::string &constraint);
 
     void setName(std::string &_name);
     std::string getName();
@@ -23,8 +23,8 @@ public:
     void setDataType(Datatype *_dataType);
     Datatype &getDataType();
 
-    void setNullable(bool _nullable);
-    bool getNullable();
+    void setConstraint(std::string &_constraint);
+    std::string getConstraint();
 };
 
 

@@ -14,17 +14,21 @@ private:
 
 public:
     Schema();
-    Schema(std::string name, std::vector<Relation*> relations);
+    explicit Schema(std::string name);
     ~Schema();
 
-    std::string getName() const;
+    [[nodiscard]] std::string getName() const;
     void setName(const std::string &_name);
 
-    Relation* getRelation(int index) const;
+    [[nodiscard]] Relation* getRelation(int index) const;
     void addRelation(Relation* relation);
+    bool hasRelation(Relation* relation);
+
     void removeRelation(int index);
 
-    int getRelationNumber() const;
+    [[nodiscard]] int getRelationNumber() const;
+
+    void storeSchema() const;
 };
 
 

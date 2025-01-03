@@ -45,12 +45,19 @@ void deleteFile(const char *filePath);
  * Creates a directory with a given path.
  * @param dirPath Path of the new directory.
  */
-void createDirectory(const char *dirPath);
+void createDirectory(const std::string &dirPath);
 
 /**
  * Deletes a directory and all the content within it.
  * @param dirPath Path of the deleted directory.
  */
 void deleteDirectory(const char *dirPath);
+
+/**
+ * Appends a line to the specified file.
+ * @param filePath Path to the file.
+ * @param line Line to append to the file.
+ */
+void writeLine(const std::string &filePath, const std::string &line);
 
 #endif //FQL_IO_H

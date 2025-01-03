@@ -1,11 +1,12 @@
 #include "Relation.h"
 
 #include <utility>
+#include "../../io/io.h"
 
 Relation::Relation() : name("null"), attributes() {}
 
-Relation::Relation(std::string name, const std::vector<Attribute*> &attributes)
-        : name(std::move(name)), attributes(attributes) {}
+Relation::Relation(std::string name)
+        : name(std::move(name)){}
 
 Relation::~Relation() {
     for (auto attribute : attributes) {
@@ -42,4 +43,17 @@ void Relation::removeAttribute(int index) {
 
 int Relation::getAttributeNumber() const {
     return static_cast<int>(attributes.size());
+}
+
+void Relation::storeRelation(const std::string &schema) const {
+    std::string filePath = "DB/" + schema + "/" + this->getName();
+    createFile(filePath);
+    std::string attributeHeader;
+
+    for (int index = 0 ; index < attributes.size() ; index++){
+        if (index != attributes.size() - 1) attributeHeader += attributes[index]->getName() + ",";
+        else attributeHeader += attributes[index]->getName();
+    }
+
+    writeLine(filePath, attributeHeader);
 }

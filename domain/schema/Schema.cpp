@@ -3,11 +3,12 @@
 #include <vector>
 
 #include "Schema.h"
+#include "../../io/io.h"
 
 Schema::Schema() : name("null"), relations() {}
 
-Schema::Schema(std::string name, std::vector<Relation *> relations) :
-    name(std::move(name)), relations(std::move(relations)) {}
+Schema::Schema(std::string name) :
+    name(std::move(name)) {}
 
 Schema::~Schema() {
     for (auto relation : relations){
@@ -44,4 +45,17 @@ void Schema::removeRelation(int index) {
 
 int Schema::getRelationNumber() const {
     return static_cast<int>(relations.size());
+}
+
+void Schema::storeSchema() const {
+    std::string directoryPath = "DB/" + this->getName();
+    createDirectory(directoryPath.c_str());
+}
+
+bool Schema::hasRelation(Relation *relation) {
+    for (const auto &_relation : relations){
+        if (_relation == relation) return true;
+    }
+
+    return false;
 }

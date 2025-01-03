@@ -1,13 +1,35 @@
-createSchema: School
-createRelation: School,Student
-createRelation: School,Teacher
-createRelationAttributes: Student
-createAttribute: CNP,UUID,PK
-createAttribute: Name,varchar(100),NOT NULL
-createAttribute: Surname,varchar(100),NOT NULL
-createAttribute: isRegistered,boolean,NULLABLE
-createRelationAttributes: Teacher
-createAttribute: CNP,UUID,PK
-createAttribute: StudentCNP,UUID,FK
-createAttribute: Name,varchar(100),NULLABLE
-createAttribute: Surname,varchar(100),NULLABLE
+createSchema:School
+createRelation:School,Student
+createRelation:School,Teacher
+createRelationAttributes:Student
+createAttribute:CNP,UUID,PK
+createAttribute:Name,varchar(100),NOT NULL
+createAttribute:Surname,varchar(100),NOT NULL
+createAttribute:isRegistered,boolean,NULLABLE
+createRelationAttributes:Teacher
+createAttribute:CNP,UUID,PK
+createAttribute:StudentCNP,UUID,FK
+createAttribute:Name,varchar(100),NULLABLE
+createAttribute:Surname,varchar(100),NULLABLE
+addRelation:Student
+addArgument:123423
+addArgument:Darian
+addArgument:Raul
+addArgument:False
+updateRelation:Teacher
+where:((Name==Marius)and(Name!=Darius))
+set:(Name=Darian)
+deleteRelation:Student
+where:(CNP==5050301303927)
+array:studentFullNames
+fetchRelation:Student
+fetchAttribute:Name
+fetchAttribute:Surname
+concatenate: :
+concatenate:---
+fetchRelation:Student
+fetchAttribute:Surname
+array:registeredNames
+fetchRelation:Student
+fetchAttribute:Name
+where:(isRegistered==True)

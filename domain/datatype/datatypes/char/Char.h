@@ -3,7 +3,7 @@
 
 #include "../../Datatype.h"
 
-class Char : Datatype {
+class Char : public Datatype {
 private:
     std::string name;
     int maxLength;

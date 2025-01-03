@@ -16,17 +16,19 @@ private:
 
 public:
     Relation();
-    Relation(std::string name, const std::vector<Attribute*> &attributes);
+    explicit Relation(std::string name);
     ~Relation();
 
-    std::string getName() const;
+    [[nodiscard]] std::string getName() const;
     void setName(const std::string &newName);
 
-    Attribute* getAttribute(int index) const;
+    [[nodiscard]] Attribute* getAttribute(int index) const;
     void addAttribute(Attribute* attribute);
     void removeAttribute(int index);
 
-    int getAttributeNumber() const;
+    [[nodiscard]] int getAttributeNumber() const;
+
+    void storeRelation(const std::string &schema) const;
 };
 
 #endif // FQL_RELATION_H
