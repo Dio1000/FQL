@@ -115,3 +115,40 @@ void writeLine(const std::string &filePath, const std::string &line) {
     fout << line << std::endl;
     fout.close();
 }
+
+void deleteLine(const std::string &filePath, const std::string &line){
+    if (filePath.empty()) throw std::runtime_error("File path is empty. Cannot delete line.");
+    std::vector<std::string> lines = readLines(filePath);
+    std::vector<std::string> newLines;
+
+    for (auto const &_line : lines){
+        if (_line != line) newLines.push_back(_line);
+    }
+
+    writeLines(filePath, newLines);
+}
+
+std::string getLine(const std::string &filePath, int index){
+    if (filePath.empty()){
+        throw std::runtime_error("File path " + filePath + " was not provided!");
+    }
+
+    if (!validFile(filePath)){
+        throw std::runtime_error("File path " + filePath + " does not exist!");
+    }
+
+    std::ifstream fin(filePath);
+    std::vector<std::string> lines;
+
+    std::string line;
+    while (getline(fin, line)){
+        lines.push_back(line);
+    }
+    fin.close();
+
+    if (index < 0 || index >= lines.size()){
+        throw std::out_of_range("Index " + std::to_string(index) + " is out of range!");
+    }
+
+    return lines[index];
+}

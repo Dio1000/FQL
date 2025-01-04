@@ -1,9 +1,11 @@
 #include <string>
 #include <vector>
 #include <iostream>
+#include <unistd.h>
 
 #include "executor.h"
 #include "../../utils/algorithms/algorithms.h"
+#include "../scanner/scanner.h"
 #include "../../io/io.h"
 #include "../../domain/attribute/Attribute.h"
 #include "../../domain/relation/Relation.h"
@@ -15,10 +17,13 @@
 #include "../../domain/datatype/datatypes/integer/Integer.h"
 #include "../../domain/datatype/datatypes/varchar/Varchar.h"
 #include "../../ui/ui.h"
+#include "../../utils/data_structures/BTree/BTree.h"
 
 std::vector<Schema*> schemas;
 std::vector<Relation*> relations;
 std::unordered_map<std::string, std::vector<std::string>> relationPKMap;
+std::unordered_map<Relation*, BTree<std::string>*> relationBTreeMap;
+std::unordered_map<Relation*, std::unordered_map<std::string, std::string>> relationPKLineMap;
 
 int executeCode(const std::string &filePath){
     std::vector<std::string> codeLines = readLines(filePath);
@@ -50,7 +55,7 @@ int executeSchema(int index, const std::vector<std::string> &codeLines){
     return index + 1;
 }
 
-int executeRelation(int index, const std::vector<std::string> &codeLines){
+int executeRelation(int index, const std::vector<std::string> &codeLines) {
     auto tokens = split(codeLines[index], ":");
     std::string relationName = split(tokens[1], ",")[1];
     std::string schemaName = split(tokens[1], ",")[0];
@@ -61,6 +66,8 @@ int executeRelation(int index, const std::vector<std::string> &codeLines){
 
     relations.push_back(newRelation);
     updateRID(relationName, getRID(relationName));
+    updateRelationPKLineMap(newRelation, schemaName, relationName);
+
     return index + 1;
 }
 
@@ -70,7 +77,24 @@ int executeRelationAttributes(int index, const std::vector<std::string> &codeLin
     index++;
 
     Relation *relation = getRelation(relationName);
+    if (relationAlreadyDeclared(relation)) {
+        relationPKMap[relationName] = getRelationPK(relation);
+        buildRelationBTree(relation);
+
+        tokens = split(codeLines[index], ":");
+        while (tokens[0] == "createAttribute"){
+            index++;
+            tokens = split(codeLines[index], ":");
+        }
+        return index;
+    }
     tokens = split(codeLines[index], ":");
+
+    std::string schemaName = getSchemaFromRelation(relation)->getName();
+    std::string relationFilePath = "DB/" + schemaName + "/" + "relationAttributes";
+
+    writeLine(relationFilePath, "Relation," + relationName);
+
     while (tokens[0] == "createAttribute"){
         auto attributeTokens = split(tokens[1], ":");
         std::string attributeName = split(attributeTokens[0], ",")[0];
@@ -81,12 +105,17 @@ int executeRelationAttributes(int index, const std::vector<std::string> &codeLin
         auto *newAttribute = new Attribute(attributeName, datatype, attributeConstraint);
         relation->addAttribute(newAttribute);
 
+        writeLine(relationFilePath, tokens[1]);
+
         index++;
         tokens = split(codeLines[index], ":");
     }
 
     relationPKMap[relationName] = getRelationPK(relation);
     relation->storeRelation(getSchemaFromRelation(relation)->getName());
+
+    buildRelationBTree(relation);
+
     return index;
 }
 
@@ -112,6 +141,7 @@ int executeAddRelation(int index, const std::vector<std::string> &codeLines) {
     std::string relation = tokens[1];
     std::string entry = std::to_string(getRID(relation)) + ",";
     int PKIndex = getRelationPKIndex(getRelation(relation));
+    std::string PK;
     index++;
 
     int currentIndex = 1;
@@ -123,6 +153,7 @@ int executeAddRelation(int index, const std::vector<std::string> &codeLines) {
         if (currentIndex == PKIndex) {
             if (std::find(relationPKMap[relation].begin(), relationPKMap[relation].end(), value) != relationPKMap[relation].end()) {
                 std::cout << "Warning: Duplicate primary key detected: " << value << std::endl;
+                addPKLineToRelationMap(getRelation(relation), PK, entry);
 
                 while (tokens[0] == "addArgument"){
                     index++;
@@ -131,7 +162,10 @@ int executeAddRelation(int index, const std::vector<std::string> &codeLines) {
 
                 return index;
             }
+
             relationPKMap[relation].push_back(value);
+            updateRelationBTree(getRelation(relation), value);
+            PK = value;
         }
         entry += (split(codeLines[index + 1], ":")[0] == "addArgument") ? value + "," : value;
 
@@ -142,6 +176,7 @@ int executeAddRelation(int index, const std::vector<std::string> &codeLines) {
 
     std::string filePath = "DB/" + getSchemaFromRelation(getRelation(relation))->getName() + "/" + relation;
     writeLine(filePath, entry);
+    addPKLineToRelationMap(getRelation(relation), PK, entry);
     updateRID(relation, getRID(relation) + 1);
 
     return index;
@@ -152,6 +187,22 @@ int executeUpdateRelation(int index, const std::vector<std::string> &codeLines){
 }
 
 int executeDeleteRelation(int index, const std::vector<std::string> &codeLines){
+    auto tokens = split(codeLines[index], ":");
+    std::string relation = tokens[1];
+    index++;
+
+    tokens = split(codeLines[index], ":");
+    std::string expression = tokens[1];
+    std::vector<std::string> expressionTokens = tokenizeExpression(getRelation(relation), expression);
+
+    if (isPKQueried(getRelation(relation), expressionTokens)){
+        std::vector<std::string> info = getPKQueryInformation(getRelation(relation), expressionTokens);
+        handlePKInfoForDelete(getRelation(relation), info);
+    }
+    else{
+        //TODO Non PK querying.
+    }
+
     return index + 1;
 }
 
@@ -177,6 +228,14 @@ int executeShow(int index, const std::vector<std::string> &codeLines){
 
 bool isRelationInSchema(Relation* relation, Schema* schema){
     if (schema->hasRelation(relation)) return true;
+    return false;
+}
+
+bool isAttributeInRelation(Relation* relation, const std::string &attribute){
+    for (int index = 1 ; index <= relation->getAttributeNumber() ; index++){
+        if (relation->getAttribute(index)->getName() == attribute) return true;
+    }
+
     return false;
 }
 
@@ -272,9 +331,212 @@ std::vector<std::string> getRelationPK(Relation *relation){
     if (!validFile(filePath)) return {};
     std::vector<std::string> lines = readLines(filePath);
 
-    for (const auto &line : lines){
-        auto tokens = split(line, ",");
+    for (size_t index = 1 ; index < lines.size() ; index++){
+        auto tokens = split(lines[index], ",");
         pks.push_back(tokens[indexPK]);
     }
     return pks;
+}
+
+std::string getRelationPKAttribute(Relation *relation){
+    for (int index = 1 ; index <= relation->getAttributeNumber() ; index++){
+        if (relation->getAttribute(index)->getConstraint() == "PK") return relation->getAttribute(index)->getName();
+    }
+
+    return "Null";
+}
+
+std::unordered_map<std::string, std::string> getPKLineMap(Relation *relation){
+    int indexPK = getRelationPKIndex(relation);
+    std::unordered_map<std::string, std::string> pkLineMap;
+
+    std::string filePath = "DB/" + getSchemaFromRelation(getRelation(relation->getName()))->getName() + "/" + relation->getName();
+    if (!validFile(filePath)) return {};
+    std::vector<std::string> lines = readLines(filePath);
+
+    for (const auto &line : lines){
+        auto tokens = split(line, ",");
+        pkLineMap[tokens[indexPK]] = line;
+    }
+
+    return pkLineMap;
+}
+
+void buildRelationBTree(Relation *relation){
+    const long pageSize = sysconf(_SC_PAGESIZE); // UNIX only
+    const long overhead = sizeof(BTreeNode<std::string>);
+    const long keySize = sizeof(std::string);
+    const long pointerSize = sizeof(int*);
+
+    const long degree = (pageSize + overhead) / (keySize + pointerSize);
+    auto *btree = new BTree<std::string>(degree);
+
+    std::vector<std::string> relationPKs = getRelationPK(relation);
+    for (auto const &PK : relationPKs){
+        btree->insert(PK);
+    }
+
+    relationBTreeMap[relation] = btree;
+}
+
+void updateRelationBTree(Relation *relation, const std::string &newKey){
+    auto *btree = relationBTreeMap[relation];
+    btree->insert(newKey);
+
+    relationBTreeMap[relation] = btree;
+}
+
+std::vector<std::string> tokenizeExpression(Relation *relation, const std::string &expression) {
+    std::vector<std::string> tokens = scanLine(expression);
+    std::vector<std::string> optimizedTokens;
+
+    for (const auto &token : tokens){
+        auto parts = split(token, ";");
+        if (parts[0] == "Identifier" && !isAttributeInRelation(relation, parts[1])){
+            parts[0] = "Constant";
+            optimizedTokens.push_back(parts[0] + ";" + parts[1]);
+        }
+        else optimizedTokens.push_back(token);
+    }
+    return optimizedTokens;
+}
+
+bool isPKQueried(Relation *relation, const std::vector<std::string> &tokens){
+    std::string PK = getRelationPKAttribute(relation);
+    bool found = false;
+    bool disjunction = false;
+    for (auto const &token : tokens){
+        auto parts = split(token, ";");
+        if (parts[0] == "Identifier" && parts[1] != PK)
+            std::cout << "Warning: Primary key " + PK + " uniquely identifies a tuple! " +
+            "Querying " + parts[1] + " is redundant!" << std::endl;
+        if (parts[0] == "Identifier" && parts[1] == PK) found = true;
+        if (parts[0] == "Separator" && parts[1] == "or") disjunction = true;
+    }
+
+    return (found && !disjunction);
+}
+
+std::vector<std::string> getPKQueryInformation(Relation *relation, const std::vector<std::string> &tokens) {
+    std::string PK = getRelationPKAttribute(relation);
+    std::vector<std::string> info;
+
+    for (size_t i = 1; i < tokens.size() - 1; ++i) {
+        auto currentToken = split(tokens[i], ";");
+        auto previousToken = split(tokens[i - 1], ";");
+        auto nextToken = split(tokens[i + 1], ";");
+
+        if (currentToken[0] == "Separator" && currentToken[1] != "(" && currentToken[1] != ")"
+            && previousToken[0] == "Identifier" && previousToken[1] == PK) {
+
+            info.push_back(currentToken[1]);
+            info.push_back(nextToken[1]);
+            break;
+        }
+    }
+
+    return info;
+}
+
+void handlePKInfoForDelete(Relation *relation, const std::vector<std::string> &info) {
+    std::string op = info[0];
+    std::string constant = info[1];
+    auto *btree = relationBTreeMap[relation];
+
+    if (op == "==" && btree->search(constant)) {
+        std::string line = getPKLineForConstant(relation, constant);
+        if (!line.empty()) {
+            std::string filePath = "DB/" + getSchemaFromRelation(getRelation(relation->getName()))->getName() + "/" + relation->getName();
+            deleteLine(filePath, line);
+            relationPKLineMap[relation].erase(constant);
+        }
+    }
+}
+
+void createPKLineToRelationMap(Relation* relation){
+    std::string filePath = "DB/" + getSchemaFromRelation(relation)->getName() + "/" + relation->getName();
+    std::vector<std::string> lines = readLines(filePath);
+
+    int PKIndex = getRelationPKIndex(relation);
+    for (int index = 1 ; index <= lines.size() ; index++){
+        auto tokens = split(lines[index], ",");
+        std::string pk = tokens[PKIndex];
+
+        addPKLineToRelationMap(relation, pk, lines[index]);
+    }
+}
+
+void addPKLineToRelationMap(Relation* relation, const std::string& pk, const std::string& line) {
+    if (relationPKLineMap.find(relation) == relationPKLineMap.end()) {
+        relationPKLineMap[relation] = std::unordered_map<std::string, std::string>();
+    }
+    relationPKLineMap[relation][pk] = line;
+}
+
+void updateRelationPKLineMap(Relation* relation, const std::string& schemaName, const std::string& relationName) {
+    std::string filePath = "DB/" + schemaName + "/" + relationName;
+    if (!validFile(filePath)) return;
+
+    std::vector<std::string> lines = readLines(filePath);
+    int pkIndex = getRelationPKIndex(relation);
+    if (pkIndex < 0) return;
+
+    if (relationPKLineMap.find(relation) == relationPKLineMap.end()) {
+        relationPKLineMap[relation] = std::unordered_map<std::string, std::string>();
+    }
+
+    for (const auto& line : lines) {
+        auto lineTokens = split(line, ",");
+        if (pkIndex < lineTokens.size()) {
+            std::string pk = lineTokens[pkIndex];
+            relationPKLineMap[relation][pk] = line;
+        }
+    }
+}
+
+std::string getPKLineForConstant(Relation *relation, const std::string &primaryKey) {
+    auto relationPKMapIt = relationPKLineMap.find(relation);
+
+    if (relationPKMapIt == relationPKLineMap.end() || relationPKMapIt->second.empty()) {
+        std::cerr << "No PK lines found for the relation: " << relation->getName() << std::endl;
+        return "";
+    }
+
+    auto pkLineMap = relationPKMapIt->second;
+    auto lineIt = pkLineMap.find(primaryKey);
+    if (lineIt != pkLineMap.end()) {
+        return lineIt->second;
+    }
+    else {
+        std::cerr << "Primary Key not found: " << primaryKey << " in relation: " << relation->getName() << std::endl;
+        return "";
+    }
+}
+
+bool relationAlreadyDeclared(Relation *relation){
+    std::string filePath = "DB/" + getSchemaFromRelation(relation)->getName() + "/relationAttributes";
+    std::vector<std::string> lines = readLines(filePath);
+
+    bool foundRelation = false;
+    for (const auto &line : lines){
+        auto tokens = split(line, ",");
+        if (tokens[0] == "Relation" && tokens[1] == relation->getName() && !foundRelation) foundRelation = true;
+        else if (tokens[0] == "Relation" && tokens[1] != relation->getName() && foundRelation) break;
+
+        if (foundRelation && split(tokens[0], ",")[0] != "Relation"){
+            std::string attributeName = tokens[0];
+            std::string attributeDataType = tokens[1];
+            std::string attributeConstraint = tokens[2];
+
+            Datatype *datatype = getDataType(attributeDataType);
+            auto *newAttribute = new Attribute(attributeName, datatype, attributeConstraint);
+            relation->addAttribute(newAttribute);
+        }
+    }
+
+    if (foundRelation) {
+        createPKLineToRelationMap(relation);
+        return true;
+    }
+    return false;
 }

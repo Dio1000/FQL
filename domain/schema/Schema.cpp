@@ -53,7 +53,9 @@ void Schema::storeSchema() const {
 
     createDirectory(directoryPath.c_str());
     std::string filePath = directoryPath + "/currentRID";
+    std::string filePath2 = directoryPath + "/relationAttributes";
     createFile(filePath);
+    createFile(filePath2);
 }
 
 bool Schema::hasRelation(Relation *relation) {

@@ -60,4 +60,8 @@ void deleteDirectory(const char *dirPath);
  */
 void writeLine(const std::string &filePath, const std::string &line);
 
+void deleteLine(const std::string &filePath, const std::string &line);
+
+std::string getLine(const std::string &filePath, int index);
+
 #endif //FQL_IO_H

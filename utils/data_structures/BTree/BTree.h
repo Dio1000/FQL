@@ -7,23 +7,29 @@ template <typename T>
 class BTree {
 private:
     BTreeNode<T>* root;
-    int degree;
+    long degree;
+
+    // Helper function to print the tree recursively
+    void showNode(BTreeNode<T>* node) const;
 
 public:
     BTree();
-    explicit BTree(int _degree);
+    explicit BTree(long _degree);
     ~BTree();
 
     void insert(const T& key);
     bool search(const T& key) const;
     void deleteTree(BTreeNode<T>* node);
+
+    // New method to show all values in the B-tree
+    void show() const;
 };
 
 template<typename T>
 BTree<T>::BTree() : root(nullptr), degree(100) {}
 
 template<typename T>
-BTree<T>::BTree(int _degree) : root(nullptr), degree(_degree) {}
+BTree<T>::BTree(long _degree) : root(nullptr), degree(_degree) {}
 
 template<typename T>
 BTree<T>::~BTree() { deleteTree(root); }
@@ -68,6 +74,26 @@ void BTree<T>::deleteTree(BTreeNode<T>* node) {
         deleteTree(child);
     }
     delete node;
+}
+
+template<typename T>
+void BTree<T>::show() const {
+    if (root != nullptr) {
+        showNode(root);
+    }
+}
+
+template<typename T>
+void BTree<T>::showNode(BTreeNode<T>* node) const {
+    for (const T& key : node->getKeys()) {
+        std::cout << key << " ";
+    }
+
+    if (!node->isLeaf()) {
+        for (BTreeNode<T>* child : node->getChildren()) {
+            showNode(child);
+        }
+    }
 }
 
 #endif //FQL_BTREE_H
