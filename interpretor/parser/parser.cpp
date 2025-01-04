@@ -9,6 +9,7 @@
 #include "../validator/validator.h"
 #include "../builder/builder.h"
 #include "../scanner/scanner.h"
+#include "../../io/io.h"
 
 std::vector<std::string> builderLines;
 
@@ -23,6 +24,8 @@ std::unordered_set<std::string> usedArrays;
 
 std::vector<std::string> warnings;
 std::vector<std::string> errors;
+
+std::unordered_map<std::string, std::vector<std::string>> relationDataTypes;
 
 void logError(const std::string& errorMessage, unsigned long lineNumber) {
     if (errorLines.find(lineNumber) == errorLines.end()) {
@@ -133,6 +136,7 @@ int parseRelation(int index, const std::vector<std::string>& codeLines) {
         return -1;
     }
     createdRelations.insert(tokens[1]);
+    buildDataTypes(codeLines);
 
     buildRelation(builderLines, relation, getKeyValue(relationSchema, relation));
     return index + 1;
@@ -296,6 +300,7 @@ int parseMethod(int index, const std::vector<std::string> &codeLines){
     index++;
 
     if (method == "add") return parseAdd(index, relation, codeLines);
+    else if (method == "addf") return parseAddf(index, relation, codeLines);
     else if (method == "update") return parseUpdate(index, relation, codeLines);
     else if (method == "delete") return parseDelete(index, relation, codeLines);
     else if (method == "fetch") return parseFetch(index, relation, codeLines);
@@ -384,12 +389,57 @@ int parseArgument(int index, const std::string &argumentType, const std::vector<
     return index + 1;
 }
 
+int parseAddf(int index, const std::string &relation, const std::vector<std::string> &codeLines) {
+    auto tokens = split(codeLines[index], ";");
+    if (!isValidSeparator(tokens, "(", tokens[2])) return -1;
+    index++;
+
+    tokens = split(codeLines[index], ";");
+    std::string file = tokens[1];
+    if (tokens[0] != "Identifier" || !validFile(file)) {
+        logError("Syntax error at line " + tokens[2] +
+                 "! Could not add from file: " + file + "!", index);
+        return -1;
+    }
+    index++;
+
+    tokens = split(codeLines[index], ";");
+    if (!isValidSeparator(tokens, ")", tokens[2])) return -1;
+    index++;
+
+    std::vector<std::string> lines = readLines(file);
+    std::vector<std::string> tokenizedLines;
+
+    for (auto &line : lines) {
+        if (line.empty()) continue;
+
+        line.insert(0, "(");
+        line += ")";
+
+        auto scannedLine = scanLine(line);
+        for (auto &token : scannedLine) token += ";" + tokens[2];
+        tokenizedLines.insert(tokenizedLines.end(), scannedLine.begin(), scannedLine.end());
+    }
+
+    int rowIndex = 0;
+    while (rowIndex < tokenizedLines.size()) rowIndex = parseAdd(rowIndex, relation, tokenizedLines);
+
+    return index;
+}
+
+void buildDataTypes(const std::vector<std::string> &codeLines){
+    for (const auto &relation : createdRelations){
+        if (!relationDataTypes[relation].empty()) continue;
+        relationDataTypes[relation] = getRelationDataTypes(relation, codeLines);
+    }
+}
+
 int parseAdd(int index, const std::string &relation, const std::vector<std::string> &codeLines) {
     auto tokens = split(codeLines[index], ";");
     if (!isValidSeparator(tokens, "(", tokens[2])) return -1;
     index++;
 
-    std::vector<std::string> dataTypes = getRelationDataTypes(relation, codeLines);
+    std::vector<std::string> dataTypes = relationDataTypes[relation];
     std::vector<std::string> arguments;
     if (split(codeLines[index], ";")[0] == "Identifier" || split(codeLines[index], ";")[0] == "Constant")
         arguments.push_back(split(codeLines[index], ";")[1]);

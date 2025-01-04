@@ -78,6 +78,15 @@ int parseMethod(int index, const std::vector<std::string> &codeLines);
 int parseAdd(int index, const std::string &relation, const std::vector<std::string> &codeLines);
 
 /**
+ * Parses the addf method for relations.
+ * @param index Index of the line.
+ * @param relation Relation to get the attributes from.
+ * @param codeLines Lines of code to parse.
+ * @return Index of the next parsed line.
+ */
+int parseAddf(int index, const std::string &relation, const std::vector<std::string> &codeLines);
+
+/**
  * Parses the fetch method for relations.
  * @param index Index of the line.
  * @param relation Relation to get the attributes from.
@@ -172,6 +181,8 @@ void validIdentifierDataTypes(int index, const std::string &argumentType, const 
  * @return True if the operator is valid, false otherwise.
  */
 bool isValidSeparator(const std::vector<std::string> &tokens, const std::string &op, const std::string &index);
+
+void buildDataTypes(const std::vector<std::string> &codeLines);
 
 /**
  * Gets all the warnings regarding the scanned lines.

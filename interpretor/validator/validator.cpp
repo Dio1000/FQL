@@ -62,7 +62,8 @@ bool isConstraint(const std::string &constraint){
 
 bool isMethod(const std::string &method){
     if (method == "add" || method == "delete"
-        || method == "fetch" || method == "update") return true;
+        || method == "fetch" || method == "update"
+        || method == "addf") return true;
 
     return false;
 }

@@ -1,0 +1,4 @@
+include: files/schoolRelations
+
+Student.addf(files/data)
+show: Student

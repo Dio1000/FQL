@@ -9,9 +9,9 @@
 #include "utils/data_structures/BTree/BTree.h"
 
 int main() {
-//    std::unordered_set<std::string> scannedFiles;
-//    std::vector<std::string> scannedTokens = scanCode("files/code", scannedFiles);
-//    parseCode(scannedTokens, "codeExecute");
+    std::unordered_set<std::string> scannedFiles;
+    std::vector<std::string> scannedTokens = scanCode("files/code", scannedFiles);
+    parseCode(scannedTokens, "codeExecute");
 
     executeCode("executables/codeExecute");
 }

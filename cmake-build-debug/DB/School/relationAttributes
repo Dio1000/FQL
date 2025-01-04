@@ -1,0 +1,10 @@
+Relation,Student
+CNP,UUID,PK
+Name,varchar(100),NOT NULL
+Surname,varchar(100),NOT NULL
+isRegistered,boolean,NULLABLE
+Relation,Teacher
+CNP,UUID,PK
+StudentCNP,UUID,FK
+Name,varchar(100),NULLABLE
+Surname,varchar(100),NULLABLE

@@ -47,7 +47,7 @@ std::string getLine(int lineNumber) {
 std::vector<std::string> scanLine(const std::string& line) {
     std::regex keywordsRegex(R"(^\s*(include|schema|relation|let|varchar|int|uuid|UUID|date|boolean|PK|FK|nullable|char|datetime|
         |using|nullable|not null|NULLABLE|NOT NULL|where|set|default|set|show))");
-    std::regex methodRegex(R"(^\s*(add|delete|fetch|update))");
+    std::regex methodRegex(R"(^\s*(addf|add|delete|fetch|update))");
     std::regex separatorRegex(R"(^\s*(and|or|>|<|>=|<=|!=|==|->|:|=|\+|-|\(|\)|\{|\}|\.|\,))");
     std::regex constantRegex(R"(^\s*(-?\d+(\.\d+)?|\"([^\"\\]|\\.)*\"|[Tt][Rr][Uu][Ee]|[Ff][Aa][Ll][Ss][Ee]))");
     std::regex identifierRegex(R"(^\s*[a-zA-Z0-9_\-/\\]+)");
