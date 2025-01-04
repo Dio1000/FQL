@@ -232,11 +232,20 @@ bool isPKQueried(Relation *relation, const std::vector<std::string> &tokens);
 std::vector<std::string> getPKQueryInformation(Relation *relation, const std::vector<std::string> &tokens);
 
 /**
- * Handles the information of the PK if the query is uniquely identified by the PK.
+ * Handles the information of the PK if the query is uniquely identified by the PK for deletion.
  * @param relation Relation to check in.
  * @param info Vector of exactly two strings representing Information about the operation.
  */
 void handlePKInfoForDelete(Relation* relation, const std::vector<std::string> &info);
+
+/**
+ * Handles the information of the PK if the query is uniquely identified by the PK for updating.
+ * @param relation Relation to check in.
+ * @param info Vector of exactly two strings representing Information about the operation.
+ * @param attributeValueMap Map that maps the index of the attribute to the new value it receives.
+ */
+void handlePKInfoForUpdate(Relation* relation, const std::vector<std::string> &info,
+                           const std::unordered_map<size_t, std::string> &attributeValueMap);
 
 /**
  * Adds a PK to the relationPKLineMap of a given relation.
@@ -274,5 +283,18 @@ std::string getPKLineForConstant(Relation *relation, const std::string &primaryK
  * @return True if the relation is already declared, false otherwise.
  */
 bool relationAlreadyDeclared(Relation *relation);
+
+/**
+ * Updates the lines from a file with the given specifications.
+ * @param filePath Path to the file.
+ * @param relation Relation the update was called from.
+ * @param PK Primary key of the relation.
+ * @param attributeValueMap Map that maps the index of the attribute to the new value it receives.
+ */
+void updateLinesByPK(const std::string &filePath, Relation* relation,
+                     const std::string &PK, std::unordered_map<size_t, std::string> attributeValueMap);
+
+std::unordered_map<size_t, std::string> getAttributeValueMap(Relation *relation,
+                                                             const std::vector<std::string> &statementTokens);
 
 #endif //FQL_EXECUTOR_H

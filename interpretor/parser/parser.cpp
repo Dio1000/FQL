@@ -3,6 +3,7 @@
 #include <unordered_map>
 #include <iostream>
 #include <unordered_set>
+#include <chrono>
 
 #include "parser.h"
 #include "../../utils/algorithms/algorithms.h"
@@ -47,6 +48,9 @@ bool isValidSeparator(const std::vector<std::string> &tokens, const std::string 
 }
 
 int parseCode(const std::vector<std::string>& codeLines, const std::string &filePath) {
+    using namespace std::chrono;
+    auto start = high_resolution_clock::now();
+
     int index = 0;
 
     while (index < codeLines.size() && index != -1) {
@@ -99,6 +103,12 @@ int parseCode(const std::vector<std::string>& codeLines, const std::string &file
     if (!warnings.empty()) showMessages();
     std::cout << "Build successful!" << std::endl;
     buildExecutable(builderLines, filePath);
+
+    auto end = high_resolution_clock::now();
+    auto duration = duration_cast<milliseconds>(end - start);
+    if (duration.count() > 1000) std::cout << "Build execution time: " << duration.count() / 1000 << "s" << std::endl;
+    else std::cout << "Build execution time: " << duration.count() << "ms" << std::endl;
+
     return true;
 }
 
@@ -558,6 +568,7 @@ int parseUpdate(int index, const std::string &relation, const std::vector<std::s
     if (!isValidSeparator(tokens, "{", tokens[2])) return -1;
     index++;
 
+    std::vector<std::string> setTokens;
     while (true) {
         if (index >= codeLines.size()) {
             logError("Syntax error: Missing closing '}' in expression!", index);
@@ -567,15 +578,15 @@ int parseUpdate(int index, const std::string &relation, const std::vector<std::s
         tokens = split(codeLines[index], ";");
         if (tokens[1] == "}") break;
 
-        expressionTokens.push_back(codeLines[index]);
+        setTokens.push_back(codeLines[index]);
         setExpression += tokens[1];
         index++;
     }
     index++;
 
-    if (!isExpressionValid(expressionTokens, dataTypes)) {
+    if (!isStatementValid(setTokens)) {
         logError("Syntax error at line " + tokens[2] +
-                 ": Invalid expression inside method call!", index);
+                 ": Invalid statement inside method call!", index);
         return -1;
     }
 

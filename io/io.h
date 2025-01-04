@@ -60,8 +60,19 @@ void deleteDirectory(const char *dirPath);
  */
 void writeLine(const std::string &filePath, const std::string &line);
 
+/**
+ * Deletes a lien from a specified file.
+ * @param filePath Path to the file.
+ * @param line Line to delete.
+ */
 void deleteLine(const std::string &filePath, const std::string &line);
 
+/**
+ * Gets the line at a given index from a file.
+ * @param filePath Path to the file.
+ * @param index Index of the line.
+ * @return String representing the line at the given index.
+ */
 std::string getLine(const std::string &filePath, int index);
 
 #endif //FQL_IO_H

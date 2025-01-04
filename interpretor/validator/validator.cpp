@@ -324,3 +324,14 @@ bool isExpressionValid(const std::vector<std::string>& expressionTokens,
     if (expressionTree->isEnded()) return true;
     return false;
 }
+
+bool isStatementValid(const std::vector<std::string> &statementTokens){
+    for (auto const &token : statementTokens){
+        auto tokens = split(token, ";");
+        if (tokens[0] == "Separator" && (tokens[1] == "(" || tokens[1] == ")")) continue;
+        if (tokens[0] == "Separator" && (tokens[1] != "=" && tokens[1] != "and")) return false;
+        else if (tokens[0] == "Separator" && tokens[1] == "or") return false;
+    }
+
+    return true;
+}

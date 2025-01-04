@@ -154,4 +154,12 @@ bool isOperator(const std::string &op);
 bool isExpressionValid(const std::vector<std::string> &expressionTokens,
                   const std::unordered_map<std::string, std::string> &dataTypes);
 
+/**
+ * Parses a statement passed inside a method.
+ * @param statementTokens Tokens representing the statement inside the method.
+ * from which a method is called from.
+ * @return True if the statement is valid, false otherwise.
+ */
+bool isStatementValid(const std::vector<std::string> &statementTokens);
+
 #endif //FQL_VALIDATOR_H

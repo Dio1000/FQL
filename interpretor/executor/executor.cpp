@@ -2,6 +2,7 @@
 #include <vector>
 #include <iostream>
 #include <unistd.h>
+#include <chrono>
 
 #include "executor.h"
 #include "../../utils/algorithms/algorithms.h"
@@ -25,7 +26,10 @@ std::unordered_map<std::string, std::vector<std::string>> relationPKMap;
 std::unordered_map<Relation*, BTree<std::string>*> relationBTreeMap;
 std::unordered_map<Relation*, std::unordered_map<std::string, std::string>> relationPKLineMap;
 
-int executeCode(const std::string &filePath){
+int executeCode(const std::string &filePath) {
+    using namespace std::chrono;
+    auto start = high_resolution_clock::now();
+
     std::vector<std::string> codeLines = readLines(filePath);
 
     int index = 0;
@@ -42,6 +46,11 @@ int executeCode(const std::string &filePath){
         else if (isMethodCall(opCode)) index = executeMethodCall(index, codeLines);
         else index++;
     }
+
+    auto end = high_resolution_clock::now();
+    auto duration = duration_cast<milliseconds>(end - start);
+    if (duration.count() > 1000) std::cout << "Code execution time: " << duration.count() / 1000 << "s" << std::endl;
+    else std::cout << "Code execution time: " << duration.count() << "ms" << std::endl;
 
     return index;
 }
@@ -183,7 +192,28 @@ int executeAddRelation(int index, const std::vector<std::string> &codeLines) {
 }
 
 int executeUpdateRelation(int index, const std::vector<std::string> &codeLines){
-    return index + 1;
+    auto tokens = split(codeLines[index], ":");
+    std::string relation = tokens[1];
+    index++;
+
+    tokens = split(codeLines[index], ":");
+    std::string expression = tokens[1];
+    std::vector<std::string> expressionTokens = tokenizeExpression(getRelation(relation), expression);
+    index++;
+
+    tokens = split(codeLines[index], ":");
+    std::string statement = tokens[1];
+    std::vector<std::string> statementTokens = tokenizeExpression(getRelation(relation), statement);
+
+    if (isPKQueried(getRelation(relation), expressionTokens)){
+        std::vector<std::string> info = getPKQueryInformation(getRelation(relation), expressionTokens);
+        handlePKInfoForUpdate(getRelation(relation), info, getAttributeValueMap(getRelation(relation), statementTokens));
+    }
+    else{
+        //TODO Non PK querying.
+    }
+
+    return index;
 }
 
 int executeDeleteRelation(int index, const std::vector<std::string> &codeLines){
@@ -224,6 +254,42 @@ int executeShow(int index, const std::vector<std::string> &codeLines){
     showRelation(filePath, tokens[1]);
 
     return index + 1;
+}
+
+void handlePKInfoForUpdate(Relation* relation, const std::vector<std::string> &info,
+                           const std::unordered_map<size_t, std::string> &attributeValueMap){
+    std::string op = info[0];
+    std::string constant = info[1];
+    auto *btree = relationBTreeMap[relation];
+
+    if (op == "==" && btree->search(constant)) {
+        std::string line = getPKLineForConstant(relation, constant);
+        if (!line.empty()) {
+            std::string filePath = "DB/" + getSchemaFromRelation(getRelation(relation->getName()))->getName() + "/" + relation->getName();
+            updateLinesByPK(filePath, relation, constant, attributeValueMap);
+        }
+    }
+    else {
+        //TODO Handle other cases of expressions.
+    }
+}
+
+void handlePKInfoForDelete(Relation *relation, const std::vector<std::string> &info) {
+    std::string op = info[0];
+    std::string constant = info[1];
+    auto *btree = relationBTreeMap[relation];
+
+    if (op == "==" && btree->search(constant)) {
+        std::string line = getPKLineForConstant(relation, constant);
+        if (!line.empty()) {
+            std::string filePath = "DB/" + getSchemaFromRelation(getRelation(relation->getName()))->getName() + "/" + relation->getName();
+            deleteLine(filePath, line);
+            relationPKLineMap[relation].erase(constant);
+        }
+    }
+    else {
+        //TODO handle other cases of expressions
+    }
 }
 
 bool isRelationInSchema(Relation* relation, Schema* schema){
@@ -438,21 +504,6 @@ std::vector<std::string> getPKQueryInformation(Relation *relation, const std::ve
     return info;
 }
 
-void handlePKInfoForDelete(Relation *relation, const std::vector<std::string> &info) {
-    std::string op = info[0];
-    std::string constant = info[1];
-    auto *btree = relationBTreeMap[relation];
-
-    if (op == "==" && btree->search(constant)) {
-        std::string line = getPKLineForConstant(relation, constant);
-        if (!line.empty()) {
-            std::string filePath = "DB/" + getSchemaFromRelation(getRelation(relation->getName()))->getName() + "/" + relation->getName();
-            deleteLine(filePath, line);
-            relationPKLineMap[relation].erase(constant);
-        }
-    }
-}
-
 void createPKLineToRelationMap(Relation* relation){
     std::string filePath = "DB/" + getSchemaFromRelation(relation)->getName() + "/" + relation->getName();
     std::vector<std::string> lines = readLines(filePath);
@@ -539,4 +590,54 @@ bool relationAlreadyDeclared(Relation *relation){
         return true;
     }
     return false;
+}
+
+void updateLinesByPK(const std::string &filePath, Relation *relation,
+                     const std::string &PK, std::unordered_map<size_t, std::string> attributeValueMap) {
+    std::vector<std::string> lines = readLines(filePath);
+
+    int PKIndex = getRelationPKIndex(relation);
+
+    for (auto &line : lines) {
+        auto tokens = split(line, ",");
+
+        if (tokens[PKIndex] == PK) {
+            for (int index = 0; index < tokens.size(); index++) {
+                if (attributeValueMap.find(index) != attributeValueMap.end()) {
+                    tokens[index] = attributeValueMap[index];
+                }
+            }
+            line = join(tokens, ",");
+        }
+    }
+    writeLines(filePath, lines);
+}
+
+std::unordered_map<size_t, std::string> getAttributeValueMap(Relation *relation,
+                                                             const std::vector<std::string> &statementTokens){
+    std::unordered_map<size_t, std::string> attributeValueMap;
+    std::unordered_map<std::string, size_t> attributeIndexMap;
+
+    std::string filePath = "DB/" + getSchemaFromRelation(relation)->getName() + "/" + relation->getName();
+    std::string header = getLine(filePath, 0);
+    auto headerTokens = split(header, ",");
+    for (int index = 0 ; index < headerTokens.size() ; index++) attributeIndexMap[headerTokens[index]] = index;
+
+    for (size_t index = 0 ; index < statementTokens.size() ; index++){
+        auto tokens = split(statementTokens[index], ";");
+        if (tokens[0] == "Separator" && (tokens[1] == "(" || tokens[1] == ")")) continue;
+        if (tokens[0] == "Separator" && tokens[1] == "=") {
+            auto prevTokens = split(statementTokens[index - 1], ";");
+            auto nextTokens = split(statementTokens[index + 1], ";");
+
+            if (prevTokens[0] == "Identifier" && isAttributeInRelation(relation, prevTokens[1])){
+                attributeValueMap[attributeIndexMap[prevTokens[1]]] = nextTokens[1];
+            }
+            else if (nextTokens[0] == "Identifier" && isAttributeInRelation(relation, nextTokens[1])){
+                attributeValueMap[attributeIndexMap[nextTokens[1]]] = prevTokens[1];
+            }
+        }
+    }
+
+    return attributeValueMap;
 }

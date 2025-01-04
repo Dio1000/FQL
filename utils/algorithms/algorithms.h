@@ -108,4 +108,5 @@ std::string unescapeString(const std::string& str);
  */
 std::string getKeyValue(const std::unordered_map<std::string, std::string>& map, const std::string& key);
 
+std::string join(const std::vector<std::string>& tokens, const std::string& delimiter);
 #endif
