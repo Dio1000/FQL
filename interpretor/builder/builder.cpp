@@ -69,3 +69,11 @@ void buildConcatenate(std::vector<std::string> &builderLines, const std::string 
 void buildShow(std::vector<std::string> &builderLines, const std::string &relation){
     builderLines.push_back("show:" + relation);
 }
+
+void buildShowSchema(std::vector<std::string> &builderLines, const std::string &schema){
+    builderLines.push_back("showSchema:" + schema);
+}
+
+void buildShowArray(std::vector<std::string> &builderLines, const std::string &array){
+    builderLines.push_back("showArray:" + array);
+}

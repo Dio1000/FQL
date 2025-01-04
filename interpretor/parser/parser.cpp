@@ -829,14 +829,22 @@ int parseShow(int index, const std::vector<std::string> &codeLines){
     index++;
 
     tokens = split(codeLines[index], ";");
-    if (!isRelation(tokens[1], codeLines)){
-        logError("Syntax error at line " + tokens[2] + "! "
-        + tokens[1] + " is not a valid relation!", index);
-        return -1;
+    if (isRelation(tokens[1], codeLines)){
+        buildShow(builderLines, tokens[1]);
+        return index + 1;
+    }
+    else if (isSchema(tokens[1], codeLines)){
+        buildShowSchema(builderLines, tokens[1]);
+        return index + 1;
+    }
+    else if (isArray(tokens[1], codeLines)){
+        buildShowArray(builderLines, tokens[1]);
+        return index + 1;
     }
 
-    buildShow(builderLines, tokens[1]);
-    return index + 1;
+    logError("Syntax error at line " + tokens[2] +
+    "! No matching function call for function 'show'!", index);
+    return -1;
 }
 
 void getWarnings(){

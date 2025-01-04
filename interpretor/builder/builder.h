@@ -92,10 +92,24 @@ void buildWhere(std::vector<std::string> &builderLines, const std::string &where
 void buildConcatenate(std::vector<std::string> &builderLines, const std::string &op);
 
 /**
- * Builds the execution lines for the show function.
+ * Builds the execution lines for the show function for the relations.
  * @param builderLines Builder lines to save for the execution.
  * @param relation Relation to show
  */
 void buildShow(std::vector<std::string> &builderLines, const std::string &relation);
+
+/**
+ * Builds the execution lines for the show function for the schemas.
+ * @param builderLines Builder lines to save for the execution.
+ * @param schema Schema to show
+ */
+void buildShowSchema(std::vector<std::string> &builderLines, const std::string &schema);
+
+/**
+ * Builds the execution lines for the show function for the arrays.
+ * @param builderLines Builder lines to save for the execution.
+ * @param array Array to show
+ */
+void buildShowArray(std::vector<std::string> &builderLines, const std::string &array);
 
 #endif //FQL_BUILDER_H

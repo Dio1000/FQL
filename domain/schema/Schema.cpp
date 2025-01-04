@@ -49,9 +49,14 @@ int Schema::getRelationNumber() const {
 
 void Schema::storeSchema() const {
     std::string directoryPath = "DB/" + this->getName();
+    std::string directoryPath2 = directoryPath + "/relations";
+
     if (validDirectory(directoryPath)) return;
+    if (validDirectory(directoryPath2)) return;
 
     createDirectory(directoryPath.c_str());
+    createDirectory(directoryPath2.c_str());
+
     std::string filePath = directoryPath + "/currentRID";
     std::string filePath2 = directoryPath + "/relationAttributes";
     createFile(filePath);

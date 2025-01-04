@@ -85,18 +85,23 @@ int executeArray(int index, const std::vector<std::string> &codeLines);
 /**
  * Executes the relation fetches in the parsed code.
  * @param index Index of the line that is executed.
+ * @param array Array to put the result in.
  * @param codeLines Lines of code to be executed.
  * @return Index of the next executed line.
  */
-int executeFetchRelation(int index, const std::vector<std::string> &codeLines);
+int executeFetchRelation(int index, const std::string &array,
+                         const std::vector<std::string> &codeLines);
 
 /**
  * Executes the concatenation in the parsed code.
  * @param index Index of the line that is executed.
+ * @param array Array the concatenated string will be placed in.
+ * @param constant Constant to concatenate to the array.
  * @param codeLines Lines of code to be executed.
  * @return Index of the next executed line.
  */
-int executeConcatenate(int index, const std::vector<std::string> &codeLines);
+int executeConcatenate(int index, const std::string &array,
+                       const std::string &constant);
 
 /**
  * Executes the show function in the parsed code.
@@ -105,6 +110,10 @@ int executeConcatenate(int index, const std::vector<std::string> &codeLines);
  * @return Index of the next executed line.
  */
 int executeShow(int index, const std::vector<std::string> &codeLines);
+
+int executeShowSchema(int index, const std::vector<std::string> &codeLines);
+
+int executeShowArray(int index, const std::vector<std::string> &codeLines);
 
 /**
  * Checks whether a relation belongs in a schema.
@@ -294,7 +303,21 @@ bool relationAlreadyDeclared(Relation *relation);
 void updateLinesByPK(const std::string &filePath, Relation* relation,
                      const std::string &PK, std::unordered_map<size_t, std::string> attributeValueMap);
 
+/**
+ * Builds the attributeValueMap for a given relation.
+ * @param relation Relation to build the map for.
+ * @param statementTokens Tokens of the statement.
+ * @return Map that maps the attribute to the value it will be replaced with in an update.
+ */
 std::unordered_map<size_t, std::string> getAttributeValueMap(Relation *relation,
                                                              const std::vector<std::string> &statementTokens);
+
+/**
+ * Gets all the elements (entries) from a relation belonging to a given attribute.
+ * @param relation Relation to get the elements from.
+ * @param attribute Attribute of the elements.
+ * @return Vector of strings representing the elements.
+ */
+std::vector<std::string> getElementsByAttribute(Relation *relation, const std::string &attribute);
 
 #endif //FQL_EXECUTOR_H

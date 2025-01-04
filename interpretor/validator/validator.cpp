@@ -21,8 +21,20 @@ bool isSchema(const std::string &schema, const std::vector<std::string> &codeLin
 bool isRelation(const std::string &relation, const std::vector<std::string> &codeLines){
     std::vector<std::string> relations = getRelations(codeLines);
 
-    for (const std::string &currentSchema : relations) {
-        if (currentSchema == relation) return true;
+    for (const std::string &currentRelation : relations) {
+        if (currentRelation == relation) return true;
+    }
+
+    return false;
+}
+
+bool isArray(const std::string &array, const std::vector<std::string> &codeLines) {
+    std::vector<std::string> arrays = getArrays(codeLines);
+
+    for (const auto &currentArray : arrays) {
+        if (currentArray == array) {
+            return true;
+        }
     }
 
     return false;

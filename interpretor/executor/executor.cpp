@@ -3,6 +3,7 @@
 #include <iostream>
 #include <unistd.h>
 #include <chrono>
+#include <filesystem>
 
 #include "executor.h"
 #include "../../utils/algorithms/algorithms.h"
@@ -22,9 +23,13 @@
 
 std::vector<Schema*> schemas;
 std::vector<Relation*> relations;
+
 std::unordered_map<std::string, std::vector<std::string>> relationPKMap;
 std::unordered_map<Relation*, BTree<std::string>*> relationBTreeMap;
 std::unordered_map<Relation*, std::unordered_map<std::string, std::string>> relationPKLineMap;
+
+std::vector<std::string> arrays;
+std::unordered_map<std::string, std::unordered_map<size_t, std::vector<std::string>>> arrayElementsMap;
 
 int executeCode(const std::string &filePath) {
     using namespace std::chrono;
@@ -43,6 +48,8 @@ int executeCode(const std::string &filePath) {
         else if (opCode == "createRelationAttributes") index = executeRelationAttributes(index, codeLines);
         else if (opCode == "array") index = executeArray(index, codeLines);
         else if (opCode == "show") index = executeShow(index, codeLines);
+        else if (opCode == "showSchema") index = executeShowSchema(index, codeLines);
+        else if (opCode == "showArray") index = executeShowArray(index, codeLines);
         else if (isMethodCall(opCode)) index = executeMethodCall(index, codeLines);
         else index++;
     }
@@ -141,7 +148,6 @@ int executeMethodCall(int index, const std::vector<std::string> &codeLines){
     if (tokens[0] == "addRelation") return executeAddRelation(index, codeLines);
     else if (tokens[0] == "updateRelation") return executeUpdateRelation(index, codeLines);
     else if (tokens[0] == "deleteRelation") return executeDeleteRelation(index, codeLines);
-    else if (tokens[0] == "fetchRelation") return executeFetchRelation(index, codeLines);
     else return index + 1;
 }
 
@@ -183,7 +189,7 @@ int executeAddRelation(int index, const std::vector<std::string> &codeLines) {
         currentIndex++;
     }
 
-    std::string filePath = "DB/" + getSchemaFromRelation(getRelation(relation))->getName() + "/" + relation;
+    std::string filePath = "DB/" + getSchemaFromRelation(getRelation(relation))->getName() + "/relations/" + relation;
     writeLine(filePath, entry);
     addPKLineToRelationMap(getRelation(relation), PK, entry);
     updateRID(relation, getRID(relation) + 1);
@@ -237,22 +243,105 @@ int executeDeleteRelation(int index, const std::vector<std::string> &codeLines){
 }
 
 int executeArray(int index, const std::vector<std::string> &codeLines){
-    return index + 1;
+    auto tokens = split(codeLines[index], ":");
+    std::string array = tokens[1];
+    arrays.push_back(array);
+
+    index++;
+    return executeFetchRelation(index, array, codeLines);
 }
 
-int executeFetchRelation(int index, const std::vector<std::string> &codeLines){
-    return index + 1;
+int executeFetchRelation(int index, const std::string &array,
+                         const std::vector<std::string> &codeLines) {
+    auto tokens = split(codeLines[index], ":");
+    int attributeIndex = 0;
+    std::string relation;
+    std::string concatenation;
+
+    auto &targetVector = arrayElementsMap[array][0];
+    while (tokens[0] == "fetchRelation" || tokens[0] == "fetchAttribute" || tokens[0] == "concatenate") {
+        if (tokens[0] == "fetchRelation") {
+            relation = tokens[1];
+            index++;
+            tokens = split(codeLines[index], ":");
+            continue;
+        }
+        else if (tokens[0] == "concatenate") {
+            concatenation = tokens[1];
+            index++;
+            tokens = split(codeLines[index], ":");
+            continue;
+        }
+
+        while (tokens[0] == "fetchAttribute") {
+            auto attributeElements = getElementsByAttribute(getRelation(relation), tokens[1]);
+            for (size_t i = 0; i < attributeElements.size(); ++i) {
+                if (i < targetVector.size()) {
+                    targetVector[i] += (concatenation.empty() ? "" : " " + concatenation) + " " + attributeElements[i];
+                }
+                else targetVector.push_back(attributeElements[i]);
+            }
+
+            index++;
+            tokens = split(codeLines[index], ":");
+        }
+    }
+
+    targetVector.pop_back(); //TODO see what is causing this issue
+    return index;
 }
 
-int executeConcatenate(int index, const std::vector<std::string> &codeLines){
+int executeConcatenate(int index, const std::string &array, const std::string &constant) {
+    auto &innerMap = arrayElementsMap[array];
+    for (auto &[key, vec] : innerMap) {
+        vec.push_back(constant);
+    }
+
     return index + 1;
 }
 
 int executeShow(int index, const std::vector<std::string> &codeLines){
     auto tokens = split(codeLines[index], ":");
-    std::string filePath = "DB/" + getSchemaFromRelation(getRelation(tokens[1]))->getName() + "/" + tokens[1];
+    std::string filePath = "DB/" + getSchemaFromRelation(getRelation(tokens[1]))->getName() + "/relations/" + tokens[1];
     showRelation(filePath, tokens[1]);
 
+    return index + 1;
+}
+
+int executeShowSchema(int index, const std::vector<std::string> &codeLines) {
+    auto tokens = split(codeLines[index], ":");
+
+    std::string schemaName = tokens[1];
+    std::string filePath = "DB/" + schemaName + "/relations/";
+
+    for (const auto &entry : std::filesystem::directory_iterator(filePath)) {
+        if (entry.is_regular_file()) {
+            std::string fullFilePath = entry.path().string();
+            std::string relationName = entry.path().filename().string();
+
+            showRelation(fullFilePath, relationName);
+        }
+    }
+    return index + 1;
+}
+
+int executeShowArray(int index, const std::vector<std::string> &codeLines){
+    auto tokens = split(codeLines[index], ":");
+
+    std::string array = tokens[1];
+    std::unordered_map<size_t, std::vector<std::string>> indexVectorMap = arrayElementsMap[array];
+
+    for (const auto &[mapIndex, vec] : indexVectorMap) {
+        std::cout << "Index: " << mapIndex << "\n";
+        std::cout << "Vector: [";
+        for (size_t i = 0; i < vec.size(); i++) {
+            std::cout << vec[i];
+            if (i != vec.size() - 1) {
+                std::cout << ", ";
+            }
+        }
+        std::cout << "]\n";
+    }
     return index + 1;
 }
 
@@ -265,7 +354,7 @@ void handlePKInfoForUpdate(Relation* relation, const std::vector<std::string> &i
     if (op == "==" && btree->search(constant)) {
         std::string line = getPKLineForConstant(relation, constant);
         if (!line.empty()) {
-            std::string filePath = "DB/" + getSchemaFromRelation(getRelation(relation->getName()))->getName() + "/" + relation->getName();
+            std::string filePath = "DB/" + getSchemaFromRelation(getRelation(relation->getName()))->getName() + "/relations/" + relation->getName();
             updateLinesByPK(filePath, relation, constant, attributeValueMap);
         }
     }
@@ -282,7 +371,7 @@ void handlePKInfoForDelete(Relation *relation, const std::vector<std::string> &i
     if (op == "==" && btree->search(constant)) {
         std::string line = getPKLineForConstant(relation, constant);
         if (!line.empty()) {
-            std::string filePath = "DB/" + getSchemaFromRelation(getRelation(relation->getName()))->getName() + "/" + relation->getName();
+            std::string filePath = "DB/" + getSchemaFromRelation(getRelation(relation->getName()))->getName() + "/relations/" + relation->getName();
             deleteLine(filePath, line);
             relationPKLineMap[relation].erase(constant);
         }
@@ -393,7 +482,7 @@ std::vector<std::string> getRelationPK(Relation *relation){
     int indexPK = getRelationPKIndex(relation);
     std::vector<std::string> pks;
 
-    std::string filePath = "DB/" + getSchemaFromRelation(getRelation(relation->getName()))->getName() + "/" + relation->getName();
+    std::string filePath = "DB/" + getSchemaFromRelation(getRelation(relation->getName()))->getName() + "/relations/" + relation->getName();
     if (!validFile(filePath)) return {};
     std::vector<std::string> lines = readLines(filePath);
 
@@ -416,7 +505,7 @@ std::unordered_map<std::string, std::string> getPKLineMap(Relation *relation){
     int indexPK = getRelationPKIndex(relation);
     std::unordered_map<std::string, std::string> pkLineMap;
 
-    std::string filePath = "DB/" + getSchemaFromRelation(getRelation(relation->getName()))->getName() + "/" + relation->getName();
+    std::string filePath = "DB/" + getSchemaFromRelation(getRelation(relation->getName()))->getName() + "/relations/" + relation->getName();
     if (!validFile(filePath)) return {};
     std::vector<std::string> lines = readLines(filePath);
 
@@ -505,7 +594,7 @@ std::vector<std::string> getPKQueryInformation(Relation *relation, const std::ve
 }
 
 void createPKLineToRelationMap(Relation* relation){
-    std::string filePath = "DB/" + getSchemaFromRelation(relation)->getName() + "/" + relation->getName();
+    std::string filePath = "DB/" + getSchemaFromRelation(relation)->getName() + "/relations/" + relation->getName();
     std::vector<std::string> lines = readLines(filePath);
 
     int PKIndex = getRelationPKIndex(relation);
@@ -525,7 +614,7 @@ void addPKLineToRelationMap(Relation* relation, const std::string& pk, const std
 }
 
 void updateRelationPKLineMap(Relation* relation, const std::string& schemaName, const std::string& relationName) {
-    std::string filePath = "DB/" + schemaName + "/" + relationName;
+    std::string filePath = "DB/" + schemaName + "/relations/" + relationName;
     if (!validFile(filePath)) return;
 
     std::vector<std::string> lines = readLines(filePath);
@@ -618,7 +707,7 @@ std::unordered_map<size_t, std::string> getAttributeValueMap(Relation *relation,
     std::unordered_map<size_t, std::string> attributeValueMap;
     std::unordered_map<std::string, size_t> attributeIndexMap;
 
-    std::string filePath = "DB/" + getSchemaFromRelation(relation)->getName() + "/" + relation->getName();
+    std::string filePath = "DB/" + getSchemaFromRelation(relation)->getName() + "/relations/" + relation->getName();
     std::string header = getLine(filePath, 0);
     auto headerTokens = split(header, ",");
     for (int index = 0 ; index < headerTokens.size() ; index++) attributeIndexMap[headerTokens[index]] = index;
@@ -640,4 +729,28 @@ std::unordered_map<size_t, std::string> getAttributeValueMap(Relation *relation,
     }
 
     return attributeValueMap;
+}
+
+std::vector<std::string> getElementsByAttribute(Relation *relation, const std::string &attribute){
+    std::vector<std::string> elements;
+
+    std::string filePath = "DB/" + getSchemaFromRelation(relation)->getName() + "/relations/" + relation->getName();
+    std::string header = getLine(filePath, 0);
+    auto headerTokens = split(header, ",");
+
+    int attributeIndex;
+    for (int index = 0 ; index < headerTokens.size() ; index++) {
+        if (headerTokens[index] == attribute) {
+            attributeIndex = index;
+            break;
+        }
+    }
+
+    std::vector<std::string> lines = readLines(filePath);
+    for (int index = 1 ; index <= lines.size() ; index++){
+        auto tokens = split(lines[index], ",");
+        elements.push_back(tokens[attributeIndex]);
+    }
+
+    return elements;
 }

@@ -46,7 +46,7 @@ int Relation::getAttributeNumber() const {
 }
 
 void Relation::storeRelation(const std::string &schema) const {
-    std::string filePath = "DB/" + schema + "/" + this->getName();
+    std::string filePath = "DB/" + schema + "/relations/" + this->getName();
     if (validFile(filePath)) return;
 
     createFile(filePath);

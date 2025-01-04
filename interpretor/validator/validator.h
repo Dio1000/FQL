@@ -103,6 +103,14 @@ bool isSchema(const std::string &schema, const std::vector<std::string> &codeLin
 bool isRelation(const std::string &relation, const std::vector<std::string> &codeLines);
 
 /**
+ * Checks whether a given string is a array.
+ * @param array String representing the array.
+ * @param codeLines Lines of code to check in.
+ * @return True if the string is a array, false otherwise.
+ */
+bool isArray(const std::string &array, const std::vector<std::string> &codeLines);
+
+/**
  * Checks whether a given string is a keyword.
  * @param dataType String representing the keyword.
  * @return True if the string is a keyword, false otherwise.
