@@ -242,11 +242,12 @@ int executeDeleteRelation(int index, const std::vector<std::string> &codeLines){
     return index + 1;
 }
 
-int executeArray(int index, const std::vector<std::string> &codeLines){
+int executeArray(int index, const std::vector<std::string>& codeLines) {
     auto tokens = split(codeLines[index], ":");
     std::string array = tokens[1];
     arrays.push_back(array);
 
+    arrayElementsMap[array].clear();
     index++;
     return executeFetchRelation(index, array, codeLines);
 }
@@ -254,11 +255,11 @@ int executeArray(int index, const std::vector<std::string> &codeLines){
 int executeFetchRelation(int index, const std::string &array,
                          const std::vector<std::string> &codeLines) {
     auto tokens = split(codeLines[index], ":");
-    int attributeIndex = 0;
     std::string relation;
-    std::string concatenation;
+    bool isConcatenation = false;
 
-    auto &targetVector = arrayElementsMap[array][0];
+    std::unordered_map<size_t, std::vector<std::string>> tempMap;
+
     while (tokens[0] == "fetchRelation" || tokens[0] == "fetchAttribute" || tokens[0] == "concatenate") {
         if (tokens[0] == "fetchRelation") {
             relation = tokens[1];
@@ -266,28 +267,52 @@ int executeFetchRelation(int index, const std::string &array,
             tokens = split(codeLines[index], ":");
             continue;
         }
-        else if (tokens[0] == "concatenate") {
-            concatenation = tokens[1];
+
+        if (tokens[0] == "concatenate") {
+            isConcatenation = true;
             index++;
             tokens = split(codeLines[index], ":");
             continue;
         }
 
+        size_t attributeIndex = 0;
         while (tokens[0] == "fetchAttribute") {
-            auto attributeElements = getElementsByAttribute(getRelation(relation), tokens[1]);
-            for (size_t i = 0; i < attributeElements.size(); ++i) {
-                if (i < targetVector.size()) {
-                    targetVector[i] += (concatenation.empty() ? "" : " " + concatenation) + " " + attributeElements[i];
+            auto elements = getElementsByAttribute(getRelation(relation), tokens[1]);
+
+            if (!isConcatenation) tempMap[attributeIndex] = elements;
+            else {
+                if (tempMap.find(attributeIndex) != tempMap.end()) {
+                    auto &targetVector = tempMap[attributeIndex];
+                    std::vector<std::string> concatenatedVector;
+
+                    for (size_t i = 0; i < targetVector.size(); ++i) {
+                        concatenatedVector.push_back(targetVector[i] + " " + elements[i]);
+                    }
+
+                    tempMap[attributeIndex] = concatenatedVector;
                 }
-                else targetVector.push_back(attributeElements[i]);
+                else tempMap[attributeIndex] = elements;
+
             }
 
+            attributeIndex++;
             index++;
             tokens = split(codeLines[index], ":");
         }
     }
 
-    targetVector.pop_back(); //TODO see what is causing this issue
+    for (const auto &[key, vec] : tempMap) {
+        if (arrayElementsMap[array].find(key) == arrayElementsMap[array].end()) {
+            arrayElementsMap[array][key] = vec;
+        }
+        else {
+            auto &existingVector = arrayElementsMap[array][key];
+            for (size_t i = 0; i < vec.size(); ++i) {
+                existingVector[i] += " " + vec[i];
+            }
+        }
+    }
+
     return index;
 }
 
