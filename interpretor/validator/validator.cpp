@@ -353,13 +353,17 @@ std::vector<std::string> getValidExpressions(const std::vector<std::string> &exp
     std::stack<std::vector<std::string>> expressionStack;
     std::vector<std::string> currentExpression;
 
+    bool insideString = false;
+    std::string currentToken;
+
     for (const auto &token : expressionTokens) {
         if (token == "Separator;(") {
             if (!currentExpression.empty()) {
                 expressionStack.push(currentExpression);
                 currentExpression.clear();
             }
-        } else if (token == "Separator;)") {
+        }
+        else if (token == "Separator;)") {
             if (!expressionStack.empty()) {
                 std::vector<std::string> parentExpression = expressionStack.top();
                 expressionStack.pop();
@@ -369,13 +373,29 @@ std::vector<std::string> getValidExpressions(const std::vector<std::string> &exp
                 }
                 currentExpression = parentExpression;
             }
-        } else if (token == "Operator;or") {
+        }
+        else if (token == "Operator;or") {
             if (!currentExpression.empty()) {
                 validExpressions.push_back(mergeTokens(currentExpression));
                 currentExpression.clear();
             }
+        } else if (token == "Operator;and") {
+            if (!insideString && !currentExpression.empty()) {
+                validExpressions.push_back(mergeTokens(currentExpression));
+                currentExpression.clear();
+            }
         } else {
-            currentExpression.push_back(token);
+            if (token.front() == '"' && !insideString) {
+                insideString = true;
+                currentExpression.push_back(token);
+            }
+            else if (insideString) {
+                currentExpression.push_back(token);
+                if (token.back() == '"') {
+                    insideString = false;
+                }
+            }
+            else currentExpression.push_back(token);
         }
     }
 
@@ -384,16 +404,15 @@ std::vector<std::string> getValidExpressions(const std::vector<std::string> &exp
     }
 
     std::vector<std::string> finalExpressions;
-
     for (const auto &expr : validExpressions) {
         std::vector<std::string> orSplit = splitByOr(expr);
         for (const auto &orPart : orSplit) {
             std::vector<std::string> andSplit = splitByAnd(orPart);
             if (andSplit.size() > 1) {
                 finalExpressions.push_back(join(andSplit, ","));
-            } else {
-                finalExpressions.push_back(andSplit[0]);
             }
+            else finalExpressions.push_back(andSplit[0]);
+
         }
     }
 
@@ -441,34 +460,22 @@ std::vector<std::string> splitByOr(const std::string &expression) {
 }
 
 std::vector<std::string> splitByAnd(const std::string &expression) {
-    std::vector<std::string> splitExpressions;
-    std::string current;
-    std::stack<char> parenthesisStack;
+    std::vector<std::string> result;
+    size_t start = 0;
+    size_t pos;
 
-    for (size_t i = 0; i < expression.size(); ++i) {
-        char ch = expression[i];
-        if (ch == '(') {
-            parenthesisStack.push('(');
-            current += ch;
+    while ((pos = expression.find("and", start)) != std::string::npos) {
+        if (pos > 0 && expression[pos - 1] != '=' && expression[pos + 3] != '=') {
+            result.push_back(expression.substr(start, pos - start));
+            start = pos + 3;
+        } else {
+            start = pos + 3;
         }
-        else if (ch == ')') {
-            current += ch;
-            if (!parenthesisStack.empty() && parenthesisStack.top() == '(') {
-                parenthesisStack.pop();
-            }
-        }
-        else if (expression.substr(i, 3) == "and" && parenthesisStack.empty()) {
-            if (!trim(current).empty()) {
-                splitExpressions.push_back(trim(current));
-            }
-            current.clear();
-            i += 2;
-        } else current += ch;
     }
 
-    if (!trim(current).empty()) {
-        splitExpressions.push_back(trim(current));
+    if (start < expression.size()) {
+        result.push_back(expression.substr(start));
     }
 
-    return splitExpressions;
+    return result;
 }

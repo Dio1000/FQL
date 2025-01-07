@@ -246,17 +246,38 @@ int executeDeleteRelation(int index, const std::vector<std::string> &codeLines){
 }
 
 int executeArray(int index, const std::vector<std::string>& codeLines) {
+    std::string relation;
     auto tokens = split(codeLines[index], ":");
     std::string array = tokens[1];
-    arrays.push_back(array);
 
+    arrays.push_back(array);
     arrayElementsMap[array].clear();
     index++;
-    return executeFetchRelation(index, array, codeLines);
+
+    int originalIndex = index;
+    while (split(codeLines[index], ":")[0] != "where"){
+        if (split(codeLines[index], ":")[0] == "fetchRelation")
+            relation = split(codeLines[index], ":")[1];
+
+        index++;
+        if (codeLines.size() < index) break;
+    }
+
+    std::vector<std::string> expressionTokens;
+    std::vector<std::string> validExpressions;
+
+    if (split(codeLines[index], ":")[0] == "where"){
+        std::string expression = split(codeLines[index], ":")[1];
+        expressionTokens = tokenizeExpression(getRelation(relation), expression);
+        validExpressions = getValidExpressions(expressionTokens);
+    }
+
+    return executeFetchRelation(originalIndex, array, codeLines, validExpressions);
 }
 
 int executeFetchRelation(int index, const std::string &array,
-                         const std::vector<std::string> &codeLines) {
+                         const std::vector<std::string> &codeLines,
+                         const std::vector<std::string> &validExpressions) {
     auto tokens = split(codeLines[index], ":");
     std::string relation;
     bool isConcatenation = false;
@@ -280,7 +301,7 @@ int executeFetchRelation(int index, const std::string &array,
 
         size_t attributeIndex = 0;
         while (tokens[0] == "fetchAttribute") {
-            auto elements = getElementsByAttribute(getRelation(relation), tokens[1]);
+            auto elements = getElementsByAttribute(getRelation(relation), tokens[1], validExpressions);
 
             if (!isConcatenation) tempMap[attributeIndex] = elements;
             else {
@@ -291,11 +312,9 @@ int executeFetchRelation(int index, const std::string &array,
                     for (size_t i = 0; i < targetVector.size(); ++i) {
                         concatenatedVector.push_back(targetVector[i] + " " + elements[i]);
                     }
-
                     tempMap[attributeIndex] = concatenatedVector;
                 }
                 else tempMap[attributeIndex] = elements;
-
             }
 
             attributeIndex++;
@@ -772,6 +791,7 @@ bool checkValidExpressions(Relation *relation, const std::vector<std::string> &t
         auto expressions = split(expression, ",");
         for (const auto &expr : expressions){
             auto expressionTokens = split(expr, "==");
+            //TODO Also add other operations
             if (tokens[getIndexOfAttribute(relation, expressionTokens[0])] != expressionTokens[1]){
                 validUpdateLine = false;
             }
@@ -811,7 +831,8 @@ std::unordered_map<size_t, std::string> getAttributeValueMap(Relation *relation,
     return attributeValueMap;
 }
 
-std::vector<std::string> getElementsByAttribute(Relation *relation, const std::string &attribute){
+std::vector<std::string> getElementsByAttribute(Relation *relation, const std::string &attribute,
+                                                const std::vector<std::string> &validExpressions){
     std::vector<std::string> elements;
 
     std::string filePath = "DB/" + getSchemaFromRelation(relation)->getName() + "/relations/" + relation->getName();
@@ -829,7 +850,10 @@ std::vector<std::string> getElementsByAttribute(Relation *relation, const std::s
     std::vector<std::string> lines = readLines(filePath);
     for (int index = 1 ; index <= lines.size() ; index++){
         auto tokens = split(lines[index], ",");
-        elements.push_back(tokens[attributeIndex]);
+        if (validExpressions.empty()) elements.push_back(tokens[attributeIndex]);
+        else if (checkValidExpressions(relation, tokens, validExpressions)){
+            elements.push_back(tokens[attributeIndex]);
+        }
     }
 
     return elements;

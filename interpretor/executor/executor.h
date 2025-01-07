@@ -90,10 +90,13 @@ int executeArray(int index, const std::vector<std::string> &codeLines);
  * @param index Index of the line that is executed.
  * @param array Array to put the result in.
  * @param codeLines Lines of code to be executed.
+ * @param validExpressions Set of expressions that can disjunctive true for the update to be executed.
+ * (i.e. If either of the expressions is true, the update is executed)
  * @return Index of the next executed line.
  */
 int executeFetchRelation(int index, const std::string &array,
-                         const std::vector<std::string> &codeLines);
+                         const std::vector<std::string> &codeLines,
+                         const std::vector<std::string> &validExpressions);
 
 /**
  * Executes the concatenation in the parsed code.
@@ -353,9 +356,12 @@ std::unordered_map<size_t, std::string> getAttributeValueMap(Relation *relation,
  * Gets all the elements (entries) from a relation belonging to a given attribute.
  * @param relation Relation to get the elements from.
  * @param attribute Attribute of the elements.
+ * @param validExpressions Set of expressions that can disjunctive true for the update to be executed.
+ * (i.e. If either of the expressions is true, the update is executed)
  * @return Vector of strings representing the elements.
  */
-std::vector<std::string> getElementsByAttribute(Relation *relation, const std::string &attribute);
+std::vector<std::string> getElementsByAttribute(Relation *relation, const std::string &attribute,
+                                                const std::vector<std::string> &validExpressions);
 
 /**
  * Gets the index of an attribute in a relation.

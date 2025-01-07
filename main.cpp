@@ -13,7 +13,7 @@ int main() {
     executeCode("executables/codeExecute");
 }
 
+//TODO fix 'and' and 'or' operators within strings not being correctly parsed
 //TODO fix some bug messages from relation attributes
-//TODO fix add argument type check.
 //TODO allow array declaration to start with a constant
 //TODO switch the executor for finding the page size for different operating systems.
