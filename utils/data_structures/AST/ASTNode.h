@@ -1,3 +1,5 @@
+#pragma once
+
 #ifndef FQL_ASTNODE_H
 #define FQL_ASTNODE_H
 

@@ -1,3 +1,5 @@
+#pragma once
+
 #ifndef FQL_SCANNER_H
 #define FQL_SCANNER_H
 

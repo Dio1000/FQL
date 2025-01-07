@@ -1,3 +1,5 @@
+#pragma once
+
 #ifndef FQL_VALIDATOR_H
 #define FQL_VALIDATOR_H
 
@@ -40,7 +42,7 @@ std::unordered_map<std::string, std::string> getRelationSchema(const std::vector
 
 /**
  * Fetches all data types required for a relation.
- * @param relation relation to fetch from.
+ * @param relation Relation to fetch from.
  * @param codeLines Lines of code to fetch from.
  * @return Vector of strings containing the data types required for a relation.
  */
@@ -103,10 +105,10 @@ bool isSchema(const std::string &schema, const std::vector<std::string> &codeLin
 bool isRelation(const std::string &relation, const std::vector<std::string> &codeLines);
 
 /**
- * Checks whether a given string is a array.
+ * Checks whether a given string is an array.
  * @param array String representing the array.
  * @param codeLines Lines of code to check in.
- * @return True if the string is a array, false otherwise.
+ * @return True if the string is an array, false otherwise.
  */
 bool isArray(const std::string &array, const std::vector<std::string> &codeLines);
 
@@ -160,7 +162,7 @@ bool isOperator(const std::string &op);
  * @return True if the expression is valid, false otherwise.
  */
 bool isExpressionValid(const std::vector<std::string> &expressionTokens,
-                  const std::unordered_map<std::string, std::string> &dataTypes);
+                       const std::unordered_map<std::string, std::string> &dataTypes);
 
 /**
  * Parses a statement passed inside a method.
@@ -169,5 +171,33 @@ bool isExpressionValid(const std::vector<std::string> &expressionTokens,
  * @return True if the statement is valid, false otherwise.
  */
 bool isStatementValid(const std::vector<std::string> &statementTokens);
+
+/**
+ * Gets valid expressions from a list of expression tokens.
+ * @param expressionTokens Tokens representing the expression.
+ * @return Vector of valid expressions.
+ */
+std::vector<std::string> getValidExpressions(const std::vector<std::string> &expressionTokens);
+
+/**
+ * Merges tokens into a single string.
+ * @param tokens Vector of tokens to merge.
+ * @return A string with all tokens merged.
+ */
+std::string mergeTokens(const std::vector<std::string> &tokens);
+
+/**
+ * Splits an expression by the 'AND' logical operator.
+ * @param expression Expression to split.
+ * @return Vector of expressions split by 'AND'.
+ */
+std::vector<std::string> splitByAnd(const std::string &expression);
+
+/**
+ * Splits an expression by the 'OR' logical operator.
+ * @param expression Expression to split.
+ * @return Vector of expressions split by 'OR'.
+ */
+std::vector<std::string> splitByOr(const std::string &expression);
 
 #endif //FQL_VALIDATOR_H

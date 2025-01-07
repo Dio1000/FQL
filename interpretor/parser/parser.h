@@ -1,3 +1,5 @@
+#pragma once
+
 #ifndef FQL_PARSER_H
 #define FQL_PARSER_H
 
@@ -182,6 +184,10 @@ void validIdentifierDataTypes(int index, const std::string &argumentType, const 
  */
 bool isValidSeparator(const std::vector<std::string> &tokens, const std::string &op, const std::string &index);
 
+/**
+ * Builds data types for the given code lines.
+ * @param codeLines Lines of code to build data types for.
+ */
 void buildDataTypes(const std::vector<std::string> &codeLines);
 
 /**

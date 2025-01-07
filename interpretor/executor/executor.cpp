@@ -9,9 +9,6 @@
 #include "../../utils/algorithms/algorithms.h"
 #include "../scanner/scanner.h"
 #include "../../io/io.h"
-#include "../../domain/attribute/Attribute.h"
-#include "../../domain/relation/Relation.h"
-#include "../../domain/schema/Schema.h"
 #include "../../domain/datatype/datatypes/boolean/Boolean.h"
 #include "../../domain/datatype/datatypes/char/Char.h"
 #include "../../domain/datatype/datatypes/date/Date.h"
@@ -213,10 +210,14 @@ int executeUpdateRelation(int index, const std::vector<std::string> &codeLines){
 
     if (isPKQueried(getRelation(relation), expressionTokens)){
         std::vector<std::string> info = getPKQueryInformation(getRelation(relation), expressionTokens);
-        handlePKInfoForUpdate(getRelation(relation), info, getAttributeValueMap(getRelation(relation), statementTokens));
+        handlePKInfoForUpdate(getRelation(relation), info,
+                              getAttributeValueMap(getRelation(relation), statementTokens));
     }
     else{
-        //TODO Non PK querying.
+        std::vector<std::string> validExpressions = getValidExpressions(expressionTokens);
+        std::string filePath = "DB/" + getSchemaFromRelation(getRelation(relation))->getName() + "/relations/" + relation;
+        updateLinesByNonPK(filePath, getRelation(relation), validExpressions,
+                           getAttributeValueMap(getRelation(relation), statementTokens));
     }
 
     return index;
@@ -236,7 +237,9 @@ int executeDeleteRelation(int index, const std::vector<std::string> &codeLines){
         handlePKInfoForDelete(getRelation(relation), info);
     }
     else{
-        //TODO Non PK querying.
+        std::vector<std::string> validExpressions = getValidExpressions(expressionTokens);
+        std::string filePath = "DB/" + getSchemaFromRelation(getRelation(relation))->getName() + "/relations/" + relation;
+        deleteLinesByNonPK(filePath, getRelation(relation), validExpressions);
     }
 
     return index + 1;
@@ -587,7 +590,7 @@ bool isPKQueried(Relation *relation, const std::vector<std::string> &tokens){
     bool disjunction = false;
     for (auto const &token : tokens){
         auto parts = split(token, ";");
-        if (parts[0] == "Identifier" && parts[1] != PK)
+        if (parts[0] == "Identifier" && parts[1] != PK && found)
             std::cout << "Warning: Primary key " + PK + " uniquely identifies a tuple! " +
             "Querying " + parts[1] + " is redundant!" << std::endl;
         if (parts[0] == "Identifier" && parts[1] == PK) found = true;
@@ -707,14 +710,13 @@ bool relationAlreadyDeclared(Relation *relation){
 }
 
 void updateLinesByPK(const std::string &filePath, Relation *relation,
-                     const std::string &PK, std::unordered_map<size_t, std::string> attributeValueMap) {
+                     const std::string &PK,
+                     std::unordered_map<size_t, std::string> attributeValueMap) {
     std::vector<std::string> lines = readLines(filePath);
-
     int PKIndex = getRelationPKIndex(relation);
 
     for (auto &line : lines) {
         auto tokens = split(line, ",");
-
         if (tokens[PKIndex] == PK) {
             for (int index = 0; index < tokens.size(); index++) {
                 if (attributeValueMap.find(index) != attributeValueMap.end()) {
@@ -725,6 +727,59 @@ void updateLinesByPK(const std::string &filePath, Relation *relation,
         }
     }
     writeLines(filePath, lines);
+}
+
+void updateLinesByNonPK(const std::string &filePath, Relation* relation,
+                        const std::vector<std::string> &validExpressions,
+                        std::unordered_map<size_t, std::string> attributeValueMap){
+    std::vector<std::string> lines = readLines(filePath);
+
+    for (auto &line : lines){
+        auto tokens = split(line, ",");
+        if (checkValidExpressions(relation, tokens, validExpressions)){
+            for (int index = 0; index < tokens.size(); index++) {
+                if (attributeValueMap.find(index) != attributeValueMap.end()) {
+                    tokens[index] = attributeValueMap[index];
+                }
+            }
+            line = join(tokens, ",");
+        }
+    }
+    writeLines(filePath, lines);
+}
+
+void deleteLinesByNonPK(const std::string &filePath, Relation* relation,
+                       const std::vector<std::string> &validExpressions){
+    std::vector<std::string> lines = readLines(filePath);
+    std::vector<std::string> newLines;
+
+    for (auto &line : lines){
+        auto tokens = split(line, ",");
+        if (!checkValidExpressions(relation, tokens, validExpressions)){
+            newLines.push_back(line);
+        }
+    }
+
+    writeLines(filePath, newLines);
+}
+
+bool checkValidExpressions(Relation *relation, const std::vector<std::string> &tokens,
+                           const std::vector<std::string> &validExpressions){
+
+    for (const auto &expression : validExpressions){
+        bool validUpdateLine = true;
+
+        auto expressions = split(expression, ",");
+        for (const auto &expr : expressions){
+            auto expressionTokens = split(expr, "==");
+            if (tokens[getIndexOfAttribute(relation, expressionTokens[0])] != expressionTokens[1]){
+                validUpdateLine = false;
+            }
+        }
+
+        if (validUpdateLine) return true;
+    }
+    return false;
 }
 
 std::unordered_map<size_t, std::string> getAttributeValueMap(Relation *relation,
@@ -778,4 +833,16 @@ std::vector<std::string> getElementsByAttribute(Relation *relation, const std::s
     }
 
     return elements;
+}
+
+size_t getIndexOfAttribute(Relation *relation, const std::string &attribute){
+    std::string filePath = "DB/" + getSchemaFromRelation(relation)->getName() + "/relations/" + relation->getName();
+    std::string header = getLine(filePath, 0);
+    auto headerTokens = split(header, ",");
+
+    for (int index = 1 ; index < headerTokens.size() ; index++){
+        if (headerTokens[index] == attribute) return index;
+    }
+
+    return 0;
 }

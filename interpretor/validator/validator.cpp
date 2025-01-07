@@ -2,11 +2,11 @@
 #include <vector>
 #include <unordered_map>
 #include <regex>
+#include <stack>
 
 #include "validator.h"
 #include "../../utils/algorithms/algorithms.h"
 #include "../../utils/data_structures/AST/AST.h"
-#include <iostream>
 
 bool isSchema(const std::string &schema, const std::vector<std::string> &codeLines){
     std::vector<std::string> schemas = getSchemas(codeLines);
@@ -346,4 +346,129 @@ bool isStatementValid(const std::vector<std::string> &statementTokens){
     }
 
     return true;
+}
+
+std::vector<std::string> getValidExpressions(const std::vector<std::string> &expressionTokens) {
+    std::vector<std::string> validExpressions;
+    std::stack<std::vector<std::string>> expressionStack;
+    std::vector<std::string> currentExpression;
+
+    for (const auto &token : expressionTokens) {
+        if (token == "Separator;(") {
+            if (!currentExpression.empty()) {
+                expressionStack.push(currentExpression);
+                currentExpression.clear();
+            }
+        } else if (token == "Separator;)") {
+            if (!expressionStack.empty()) {
+                std::vector<std::string> parentExpression = expressionStack.top();
+                expressionStack.pop();
+
+                if (!currentExpression.empty()) {
+                    parentExpression.push_back(mergeTokens(currentExpression));
+                }
+                currentExpression = parentExpression;
+            }
+        } else if (token == "Operator;or") {
+            if (!currentExpression.empty()) {
+                validExpressions.push_back(mergeTokens(currentExpression));
+                currentExpression.clear();
+            }
+        } else {
+            currentExpression.push_back(token);
+        }
+    }
+
+    if (!currentExpression.empty()) {
+        validExpressions.push_back(mergeTokens(currentExpression));
+    }
+
+    std::vector<std::string> finalExpressions;
+
+    for (const auto &expr : validExpressions) {
+        std::vector<std::string> orSplit = splitByOr(expr);
+        for (const auto &orPart : orSplit) {
+            std::vector<std::string> andSplit = splitByAnd(orPart);
+            if (andSplit.size() > 1) {
+                finalExpressions.push_back(join(andSplit, ","));
+            } else {
+                finalExpressions.push_back(andSplit[0]);
+            }
+        }
+    }
+
+    return finalExpressions;
+}
+
+std::string mergeTokens(const std::vector<std::string> &tokens) {
+    std::string merged;
+    for (const auto &token : tokens) {
+        merged += token.substr(token.find(';') + 1);
+    }
+    return merged;
+}
+
+std::vector<std::string> splitByOr(const std::string &expression) {
+    std::vector<std::string> splitExpressions;
+    std::string current;
+    std::stack<char> parenthesisStack;
+
+    for (size_t i = 0; i < expression.size(); ++i) {
+        char ch = expression[i];
+        if (ch == '(') {
+            parenthesisStack.push('(');
+            current += ch;
+        }
+        else if (ch == ')') {
+            current += ch;
+            if (!parenthesisStack.empty() && parenthesisStack.top() == '(') {
+                parenthesisStack.pop();
+            }
+        }
+        else if (expression.substr(i, 2) == "or" && parenthesisStack.empty()) {
+            splitExpressions.push_back(trim(current));
+            current.clear();
+            i++;
+        }
+        else current += ch;
+    }
+
+    if (!current.empty()) {
+        splitExpressions.push_back(trim(current));
+    }
+
+    return splitExpressions;
+}
+
+std::vector<std::string> splitByAnd(const std::string &expression) {
+    std::vector<std::string> splitExpressions;
+    std::string current;
+    std::stack<char> parenthesisStack;
+
+    for (size_t i = 0; i < expression.size(); ++i) {
+        char ch = expression[i];
+        if (ch == '(') {
+            parenthesisStack.push('(');
+            current += ch;
+        }
+        else if (ch == ')') {
+            current += ch;
+            if (!parenthesisStack.empty() && parenthesisStack.top() == '(') {
+                parenthesisStack.pop();
+            }
+        }
+        else if (expression.substr(i, 3) == "and" && parenthesisStack.empty()) {
+            if (!trim(current).empty()) {
+                splitExpressions.push_back(trim(current));
+            }
+            current.clear();
+            i += 2;
+        } else current += ch;
+    }
+
+    if (!trim(current).empty()) {
+        splitExpressions.push_back(trim(current));
+    }
+
+    return splitExpressions;
 }

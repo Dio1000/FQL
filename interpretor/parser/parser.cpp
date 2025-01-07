@@ -538,6 +538,10 @@ int parseUpdate(int index, const std::string &relation, const std::vector<std::s
     }
     index++;
 
+    if (expressionTokens.empty()){
+        logWarning("Updating " + relation + " is redundant because of empty where clause!");
+    }
+
     std::vector<std::string> attributes = getRelationAttributes(relation, codeLines);
     std::vector<std::string> types = getRelationDataTypes(relation, codeLines);
     std::unordered_map<std::string, std::string> dataTypes;
@@ -551,7 +555,7 @@ int parseUpdate(int index, const std::string &relation, const std::vector<std::s
         dataTypes[attributes[i]] = types[i];
     }
 
-    if (!isExpressionValid(expressionTokens, dataTypes)) {
+    if (!isExpressionValid(expressionTokens, dataTypes) && !expressionTokens.empty()) {
         logError("Syntax error at line " + tokens[2] +
         ": Invalid expression inside method call!", index);
         return -1;
@@ -583,6 +587,10 @@ int parseUpdate(int index, const std::string &relation, const std::vector<std::s
         index++;
     }
     index++;
+
+    if (setTokens.empty()){
+        logWarning("Updating " + relation + " is redundant because of empty set clause!");
+    }
 
     if (!isStatementValid(setTokens)) {
         logError("Syntax error at line " + tokens[2] +

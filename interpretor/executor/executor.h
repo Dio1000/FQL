@@ -1,8 +1,11 @@
+#pragma once
+
 #ifndef FQL_EXECUTOR_H
 #define FQL_EXECUTOR_H
 
 #include <unordered_map>
 #include "../../domain/schema/Schema.h"
+#include "../../interpretor/validator/validator.h"
 
 /**
  * Executes the code after it has been parsed.
@@ -111,8 +114,20 @@ int executeConcatenate(int index, const std::string &array,
  */
 int executeShow(int index, const std::vector<std::string> &codeLines);
 
+/**
+ * Executes the show function for a schema in the parsed code.
+ * @param index Index of the line that is executed.
+ * @param codeLines Lines of code to be executed.
+ * @return Index of the next executed line.
+ */
 int executeShowSchema(int index, const std::vector<std::string> &codeLines);
 
+/**
+ * Executes the show function for an array in the parsed code.
+ * @param index Index of the line that is executed.
+ * @param codeLines Lines of code to be executed.
+ * @return Index of the next executed line.
+ */
 int executeShowArray(int index, const std::vector<std::string> &codeLines);
 
 /**
@@ -304,6 +319,28 @@ void updateLinesByPK(const std::string &filePath, Relation* relation,
                      const std::string &PK, std::unordered_map<size_t, std::string> attributeValueMap);
 
 /**
+ * Updates the lines from a file with the given specifications.
+ * @param filePath Path to the file.
+ * @param relation Relation the update was called form.
+ * @param validExpressions Set of expressions that can disjunctive true for the update to be executed.
+ * (i.e. If either of the expressions is true, the update is executed)
+ * @param attributeValueMap Map that maps the index of the attribute to the new value it receives.
+ */
+void updateLinesByNonPK(const std::string &filePath, Relation* relation,
+                        const std::vector<std::string> &validExpressions,
+                        std::unordered_map<size_t, std::string> attributeValueMap);
+
+/**
+ * Deletes the lines from a file with the given specifications.
+ * @param filePath Path to the file.
+ * @param relation Relation the delete was called from.
+ * @param validExpressions Set of expressions that can disjunctive true for the update to be executed.
+ * (i.e. If either of the expressions is true, the update is executed)
+ */
+void deleteLinesByNonPK(const std::string &filePath, Relation* relation,
+                        const std::vector<std::string> &validExpressions);
+
+/**
  * Builds the attributeValueMap for a given relation.
  * @param relation Relation to build the map for.
  * @param statementTokens Tokens of the statement.
@@ -319,5 +356,25 @@ std::unordered_map<size_t, std::string> getAttributeValueMap(Relation *relation,
  * @return Vector of strings representing the elements.
  */
 std::vector<std::string> getElementsByAttribute(Relation *relation, const std::string &attribute);
+
+/**
+ * Gets the index of an attribute in a relation.
+ * @param relation Relation to get the index of the attribute from.
+ * @param attribute Attribute to get the index for.
+ * @return
+ */
+size_t getIndexOfAttribute(Relation *relation, const std::string &attribute);
+
+/**
+ * Checks if any of the valid expressions can be applied to the given expression tokens.
+ * @param relation Relation to check for.
+ * @param tokens Expression tokens.
+ * @param validExpressions Set of expressions that can disjunctive true for the update to be executed.
+ * (i.e. If either of the expressions is true, the update is executed)
+ * @return
+ */
+bool checkValidExpressions(Relation *relation, const std::vector<std::string> &tokens,
+                           const std::vector<std::string> &validExpressions);
+
 
 #endif //FQL_EXECUTOR_H
