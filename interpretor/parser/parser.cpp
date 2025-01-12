@@ -320,22 +320,52 @@ int parseMethod(int index, const std::vector<std::string> &codeLines){
 
 void validConstantDataTypes(int index, const std::string &argumentType, const std::vector<std::string> &tokens){
     if (argumentType == "UUID"){
-        if (!isUUID(tokens[1])) {
+        if (!isUUID(tokens[1]) && tokens[1] != "rand") {
             logError("Syntax error at line " + tokens[2] +
             "! Expected type 'UUID' aka char(16) for argument.", index);
         }
     }
-    if (argumentType == "int") {
+    else if (argumentType == "boolean") {
+        if (!isBoolean(tokens[1])) {
+            logError("Syntax error at line " + tokens[2] +
+                     "! Expected type 'boolean' for argument.", index);
+        }
+    }
+    else if (argumentType == "int") {
         if (!isNumber(tokens[1])) {
             logError("Syntax error at line " + tokens[2] +
             "! Expected type 'int' for argument.", index);
+        }
+    }
+    else if (argumentType.find("char(") == 0) {
+        unsigned long startIndex = argumentType.find('(');
+        unsigned long endIndex = argumentType.find(')');
+        if (startIndex != std::string::npos && endIndex != std::string::npos && endIndex > startIndex) {
+            int size = std::stoi(argumentType.substr(startIndex + 1, endIndex - startIndex - 1));
+            if (!isChar(tokens[1], size)) {
+                logError("Syntax error at line " + tokens[2] +
+                         "! Expected type 'char(" + std::to_string(size) +
+                         ")' for argument.", index);
+            }
+        }
+    }
+    else if (argumentType.find("varchar(") == 0) {
+        unsigned long startIndex = argumentType.find('(');
+        unsigned long endIndex = argumentType.find(')');
+        if (startIndex != std::string::npos && endIndex != std::string::npos && endIndex > startIndex) {
+            int size = std::stoi(argumentType.substr(startIndex + 1, endIndex - startIndex - 1));
+            if (!isVarchar(tokens[1], size)) {
+                logError("Syntax error at line " + tokens[2] +
+                         "! Expected type 'varchar(" + std::to_string(size) +
+                         ")' for argument.", index);
+            }
         }
     }
 }
 
 void validIdentifierDataTypes(int index, const std::string &argumentType, const std::vector<std::string> &tokens){
     if (argumentType == "UUID"){
-        if (!isUUID(tokens[1])) {
+        if (!isUUID(tokens[1]) && tokens[1] != "rand") {
             logError("Syntax error at line " + tokens[2] +
             "! Expected type 'UUID' aka char(16) for argument.", index);
         }

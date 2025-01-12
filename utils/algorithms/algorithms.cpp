@@ -2,6 +2,7 @@
 #include <vector>
 #include <regex>
 #include <unordered_map>
+#include <stdlib.h>
 
 #include "algorithms.h"
 
@@ -142,11 +143,23 @@ bool isDateTime(const std::string &datetime) {
 }
 
 bool isUUID(const std::string &uuid){
-    if (uuid.size() > 16) return false;
+    if (uuid.size() != 16) return false;
 
     std::string::const_iterator it = uuid.begin();
     while (it != uuid.end() && std::isdigit(*it)) ++it;
     return !uuid.empty() && it == uuid.end();
+}
+
+std::string generateUUID(){
+    srand(time(nullptr));
+
+    std::string newUUID;
+    for (int index = 0 ; index < 16 ; index++){
+        char randomDigit = rand() % 10 + '0';
+        newUUID += randomDigit;
+    }
+
+    return newUUID;
 }
 
 std::string unescapeString(const std::string& str) {

@@ -49,8 +49,8 @@
 	"kind" : "codemodel",
 	"paths" : 
 	{
-		"build" : "/Users/dariansandru/CLionProjects/Untitled/cmake-build-debug",
-		"source" : "/Users/dariansandru/CLionProjects/Untitled"
+		"build" : "/Users/dariansandru/CLionProjects/FQL/cmake-build-debug",
+		"source" : "/Users/dariansandru/CLionProjects/FQL"
 	},
 	"version" : 
 	{

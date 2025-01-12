@@ -5,12 +5,12 @@
 #include "../../io/io.h"
 
 void buildExecutable(const std::vector<std::string> &builderLines, const std::string &filePath){
-    if (!validFile("executables/" + filePath)){
-        writeLines("executables/" + filePath, builderLines);
+    if (!validFile(filePath)){
+        writeLines(filePath, builderLines);
     }
     else{
-        createFile("executables/" + filePath);
-        writeLines("executables/" + filePath, builderLines);
+        createFile(filePath);
+        writeLines(filePath, builderLines);
     }
 }
 

@@ -94,6 +94,12 @@ bool isDateTime(const std::string &datetime);
 bool isUUID(const std::string &uuid);
 
 /**
+ * Generates a random UUID (aka char(16)).
+ * @return The generated UUID.
+ */
+std::string generateUUID();
+
+/**
  * Removes all the escaping characters from a string.
  * @param str String to remove escaping characters from.
  * @return String without escaping characters.
@@ -108,7 +114,20 @@ std::string unescapeString(const std::string& str);
  */
 std::string getKeyValue(const std::unordered_map<std::string, std::string>& map, const std::string& key);
 
+/**
+ * Joins a vector of strings with a given delimiter between them.
+ * @param tokens Tokens to be joined.
+ * @param delimiter Delimited to be put between them.
+ * @return The newly formed string representing the join.
+ */
 std::string join(const std::vector<std::string>& tokens, const std::string& delimiter);
 
+/**
+ * Eliminates the whitespaces before and after a given string.
+ * @param str String to trim.
+ * @return New string representing the trim.
+ */
 std::string trim(const std::string &str);
+
+
 #endif

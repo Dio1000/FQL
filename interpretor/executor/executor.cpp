@@ -161,6 +161,7 @@ int executeAddRelation(int index, const std::vector<std::string> &codeLines) {
 
     while (tokens[0] == "addArgument") {
         std::string value = tokens[1];
+        if (value == "rand") value = generateUUID();
 
         if (currentIndex == PKIndex) {
             if (std::find(relationPKMap[relation].begin(), relationPKMap[relation].end(), value) != relationPKMap[relation].end()) {
