@@ -151,11 +151,11 @@ bool isUUID(const std::string &uuid){
 }
 
 std::string generateUUID(){
-    srand(time(nullptr));
+    srand(random() % 1000 + 1);
 
     std::string newUUID;
     for (int index = 0 ; index < 16 ; index++){
-        char randomDigit = rand() % 10 + '0';
+        char randomDigit = static_cast<char>(random() % 10 + '0');
         newUUID += randomDigit;
     }
 
